@@ -236,5 +236,86 @@ document.addEventListener('DOMContentLoaded', function() {
         imageObserver.observe(img);
     });
     
+    // WhatsApp Button Click Tracking
+    const whatsappButtons = document.querySelectorAll('a[href*="wa.me"]');
+    whatsappButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            console.log('WhatsApp button clicked');
+            // You can add analytics tracking here
+        });
+    });
+    
+    // Smooth reveal for contact cards
+    const contactCards = document.querySelectorAll('.contact-card');
+    const contactObserver = new IntersectionObserver(function(entries) {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, index * 150);
+                contactObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    contactCards.forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        card.style.transition = 'all 0.6s ease-out';
+        contactObserver.observe(card);
+    });
+    
+    // Email click tracking
+    const emailLinks = document.querySelectorAll('a[href^="mailto:"]');
+    emailLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            console.log('Email link clicked:', this.getAttribute('href'));
+        });
+    });
+    
+    // Phone click tracking
+    const phoneLinks = document.querySelectorAll('a[href^="tel:"]');
+    phoneLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            console.log('Phone link clicked:', this.getAttribute('href'));
+        });
+    });
+    
+    // Add hover effect to social icons
+    const socialIcons = document.querySelectorAll('.social-icon');
+    socialIcons.forEach(icon => {
+        icon.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px) rotate(5deg)';
+        });
+        icon.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) rotate(0)';
+        });
+    });
+    
+    // Smooth image reveal on scroll - simplified without parallax
+    const cashierSections = document.querySelectorAll('.cashier-section, .fade-in-left, .fade-in-right');
+    const cashierObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateX(0) translateY(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    cashierSections.forEach(section => {
+        cashierObserver.observe(section);
+    });
+    
+    // Add floating animation to contact section icons
+    const contactIcons = document.querySelectorAll('#kontak .w-16');
+    contactIcons.forEach((icon, index) => {
+        icon.style.animation = `floating 3s ease-in-out ${index * 0.2}s infinite`;
+    });
+    
     console.log('POS Kasir Landing Page Loaded Successfully! 🚀');
+    console.log('Contact: +62 813-8139-1621');
+    console.log('Email: bismilahdan&@mail.com');
+    console.log('Address: JL. Haji Mugeni III');
 });
