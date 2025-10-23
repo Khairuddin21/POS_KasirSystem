@@ -5,7 +5,7 @@
 @section('content')
 <div class="min-h-screen flex">
     <!-- Left Side - Image Slider -->
-    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-cyan-400 via-cyan-500 to-cyan-600 relative overflow-hidden">
+    <div class="w-full lg:flex lg:w-[70%] bg-gradient-to-br from-cyan-400 via-cyan-500 to-cyan-600 relative overflow-hidden">
         <div class="absolute inset-0 flex items-center justify-center p-12">
             <!-- Image 1 -->
             <div class="login-image active w-full h-full flex items-center justify-center">
@@ -29,7 +29,7 @@
     </div>
     
     <!-- Right Side - Login Form -->
-    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
+    <div class="w-full lg:w-[30%] flex items-center justify-center p-8 bg-white">
         <div class="w-full max-w-md">
             <!-- Logo -->
             <div class="text-center mb-8">
