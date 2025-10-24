@@ -10,7 +10,7 @@ Route::get('/', function () {
 // Admin Routes
 Route::prefix('admin')->group(function () {
     Route::get('/login', function () {
-        return view('auth.admin-login');
+        return view('auth.admin.login');
     })->name('admin.login');
     
     Route::get('/dashboard', function () {
