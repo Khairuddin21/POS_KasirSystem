@@ -1,52 +1,70 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Kasir\KasirController;
 
 // Landing Page
 Route::get('/', function () {
     return view('landing');
 });
 
+// Auth Routes (Common)
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+
+Route::get('/register', function () {
+    return view('auth.register');
+})->name('register');
+
+Route::post('/register', function () {
+    // Registration logic here
+    return redirect()->route('login')->with('success', 'Registration successful! Please login.');
+});
+
+Route::get('/password/reset', function () {
+    return view('auth.forgot-password');
+})->name('password.request');
+
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
 // Admin Routes
 Route::prefix('admin')->group(function () {
-    Route::get('/login', function () {
-        return view('auth.admin.login');
-    })->name('admin.login');
+    Route::get('/login', [AuthController::class, 'showAdminLoginForm'])->name('admin.login');
+    Route::post('/login', [AuthController::class, 'adminLogin'])->name('admin.login.post');
     
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
-    
-    Route::get('/users', function () {
-        return view('admin.users');
-    })->name('admin.users');
-    
-    Route::get('/products', function () {
-        return view('admin.products');
-    })->name('admin.products');
-    
-    Route::get('/transactions', function () {
-        return view('admin.transactions');
-    })->name('admin.transactions');
-    
-    Route::get('/reports', function () {
-        return view('admin.reports');
-    })->name('admin.reports');
-    
-    Route::get('/settings', function () {
-        return view('admin.settings');
-    })->name('admin.settings');
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/dashboard', function () {
+            return view('admin.dashboard');
+        })->name('admin.dashboard');
+        
+        Route::get('/users', function () {
+            return view('admin.users');
+        })->name('admin.users');
+        
+        Route::get('/products', function () {
+            return view('admin.products');
+        })->name('admin.products');
+        
+        Route::get('/transactions', function () {
+            return view('admin.transactions');
+        })->name('admin.transactions');
+        
+        Route::get('/reports', function () {
+            return view('admin.reports');
+        })->name('admin.reports');
+        
+        Route::get('/settings', function () {
+            return view('admin.settings');
+        })->name('admin.settings');
+    });
 });
 
 // Kasir Routes
-Route::prefix('kasir')->group(function () {
-    Route::get('/login', function () {
-        return view('auth.kasir-login');
-    })->name('kasir.login');
+Route::prefix('kasir')->middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [KasirController::class, 'dashboard'])->name('kasir.dashboard');
     
-    Route::get('/dashboard', function () {
-        return view('kasir.dashboard');
-    })->name('kasir.dashboard');
+    Route::post('/transaction/process', [KasirController::class, 'processTransaction'])->name('kasir.transaction.process');
     
     Route::get('/transaction', function () {
         return view('kasir.transaction');
@@ -66,11 +84,7 @@ Route::prefix('kasir')->group(function () {
 });
 
 // User Routes
-Route::prefix('user')->group(function () {
-    Route::get('/login', function () {
-        return view('auth.user-login');
-    })->name('user.login');
-    
+Route::prefix('user')->middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
         return view('user.dashboard');
     })->name('user.dashboard');
@@ -87,31 +101,3 @@ Route::prefix('user')->group(function () {
         return view('user.settings');
     })->name('user.settings');
 });
-
-// Auth Routes (Common)
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
-
-Route::post('/login', function () {
-    // Login logic here
-    return redirect()->intended('/dashboard');
-});
-
-Route::get('/register', function () {
-    return view('auth.register');
-})->name('register');
-
-Route::post('/register', function () {
-    // Registration logic here
-    return redirect()->route('login')->with('success', 'Registration successful! Please login.');
-});
-
-Route::get('/password/reset', function () {
-    return view('auth.forgot-password');
-})->name('password.request');
-
-Route::post('/logout', function () {
-    // Logout logic here
-    return redirect('/');
-})->name('logout');

@@ -16,21 +16,7 @@
     @stack('styles')
 </head>
 <body class="font-sans antialiased bg-gray-50">
-    <div class="min-h-screen flex">
-        <!-- Sidebar -->
-        @include('components.kasir.sidebar')
-        
-        <!-- Main Content -->
-        <div class="flex-1 flex flex-col">
-            <!-- Header -->
-            @include('components.kasir.header')
-            
-            <!-- Page Content -->
-            <main class="flex-1 p-6">
-                @yield('content')
-            </main>
-        </div>
-    </div>
+    @yield('content')
     
     @stack('scripts')
 </body>
