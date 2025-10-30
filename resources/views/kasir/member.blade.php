@@ -103,58 +103,81 @@
                     <table class="w-full">
                         <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                             <tr>
-                                <th class="px-6 py-4 text-left text-sm font-semibold">Kode Member</th>
-                                <th class="px-6 py-4 text-left text-sm font-semibold">Nama</th>
-                                <th class="px-6 py-4 text-left text-sm font-semibold">Email</th>
-                                <th class="px-6 py-4 text-left text-sm font-semibold">Telepon</th>
-                                <th class="px-6 py-4 text-left text-sm font-semibold">Poin</th>
-                                <th class="px-6 py-4 text-left text-sm font-semibold">Status</th>
-                                <th class="px-6 py-4 text-center text-sm font-semibold">Aksi</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider">No</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider">Member</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider">Kontak</th>
+                                <th class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-wider">Poin</th>
+                                <th class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="memberTableBody" class="divide-y divide-gray-200">
-                            @forelse($members as $member)
-                            <tr class="member-row hover:bg-blue-50 transition-colors" data-member-id="{{ $member->id }}">
-                                <td class="px-6 py-4">
-                                    <span class="font-mono font-semibold text-blue-600">{{ $member->member_code }}</span>
+                            @forelse($members as $index => $member)
+                            <tr class="member-row hover:bg-blue-50 transition-colors" 
+                                data-member-id="{{ $member->id }}"
+                                data-member-code="{{ $member->member_code }}"
+                                data-member-name="{{ $member->name }}"
+                                data-barcode="{{ $member->barcode }}">
+                                <td class="px-4 py-4 text-sm text-gray-600 font-medium">
+                                    {{ ($members->currentPage() - 1) * $members->perPage() + $index + 1 }}
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-4">
                                     <div class="flex items-center">
-                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold mr-3">
+                                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-lg mr-3 shadow-sm">
                                             {{ strtoupper(substr($member->name, 0, 1)) }}
                                         </div>
-                                        <span class="font-medium text-gray-800">{{ $member->name }}</span>
+                                        <div>
+                                            <p class="font-semibold text-gray-800">{{ $member->name }}</p>
+                                            <p class="text-xs text-blue-600 font-mono font-semibold">{{ $member->member_code }}</p>
+                                        </div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-gray-600">
-                                    {{ $member->email ?? '-' }}
+                                <td class="px-4 py-4">
+                                    <div class="space-y-1">
+                                        <p class="text-sm text-gray-800 flex items-center">
+                                            <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                            </svg>
+                                            {{ $member->phone }}
+                                        </p>
+                                        @if($member->email)
+                                        <p class="text-xs text-gray-500 flex items-center">
+                                            <svg class="w-3 h-3 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                            </svg>
+                                            {{ $member->email }}
+                                        </p>
+                                        @endif
+                                    </div>
                                 </td>
-                                <td class="px-6 py-4 text-gray-600">
-                                    {{ $member->phone }}
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800">
+                                <td class="px-4 py-4 text-center">
+                                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold bg-gradient-to-r from-yellow-400 to-orange-400 text-white shadow-sm">
                                         <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                                         </svg>
                                         {{ number_format($member->points) }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-4 text-center">
                                     @if($member->is_active)
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
-                                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-green-100 text-green-700">
+                                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
                                         Aktif
                                     </span>
                                     @else
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+                                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-red-100 text-red-700">
                                         <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
                                         Nonaktif
                                     </span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center justify-center gap-2">
+                                <td class="px-4 py-4">
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <button onclick="showBarcodeModal('{{ $member->barcode }}', '{{ $member->name }}', '{{ $member->member_code }}')" class="btn-icon btn-barcode" title="Barcode">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                                            </svg>
+                                        </button>
                                         <button onclick="editMember({{ $member->id }})" class="btn-icon btn-edit" title="Edit">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -175,7 +198,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-12 text-center">
+                                <td colspan="6" class="px-6 py-12 text-center">
                                     <div class="flex flex-col items-center justify-center text-gray-400">
                                         <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
@@ -294,8 +317,63 @@
     </div>
 </div>
 
+<!-- Barcode Modal -->
+<div id="barcodeModal" class="modal-overlay">
+    <div class="modal-container max-w-lg">
+        <div class="modal-content text-center">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+                    <svg class="w-7 h-7 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                    </svg>
+                    Barcode Member
+                </h2>
+                <button onclick="closeBarcodeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div id="barcodeCard" class="bg-white border-4 border-blue-600 rounded-2xl p-8 mb-6 print-area">
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-1">Conventional Shop</h3>
+                    <p class="text-sm text-gray-500">Member Card</p>
+                </div>
+                
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 mb-4">
+                    <p class="text-sm text-gray-600 mb-2">Member</p>
+                    <p id="barcodeNameDisplay" class="text-2xl font-bold text-gray-800 mb-1">-</p>
+                    <p id="barcodeCodeDisplay" class="text-sm text-blue-600 font-mono font-semibold">-</p>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border-2 border-gray-200">
+                    <svg id="barcodeImage"></svg>
+                </div>
+
+                <p class="text-xs text-gray-400 mt-4">Tunjukkan barcode ini saat melakukan transaksi</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="printBarcode()" class="btn-primary">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                    </svg>
+                    Print Barcode
+                </button>
+                <button onclick="closeBarcodeModal()" class="btn-secondary">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Notification Toast -->
 <div id="notificationToast" class="notification-toast"></div>
+
+<!-- JsBarcode Library -->
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 
 @push('styles')
 <style>
@@ -346,6 +424,16 @@
         transition: all 0.2s ease;
         border: none;
         cursor: pointer;
+    }
+
+    .btn-barcode {
+        background: #ede9fe;
+        color: #7c3aed;
+    }
+
+    .btn-barcode:hover {
+        background: #ddd6fe;
+        transform: scale(1.1);
     }
 
     .btn-edit {
@@ -456,16 +544,18 @@
         justify-content: center;
         z-index: 9999;
         padding: 20px;
+        will-change: opacity;
     }
 
     .modal-overlay.show {
         display: flex;
-        animation: fadeIn 0.3s ease;
+        animation: modalFadeIn 0.3s ease;
     }
 
     .modal-container {
         width: 100%;
-        animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: modalSlideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform, opacity;
     }
 
     .modal-content {
@@ -475,14 +565,20 @@
         box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
         max-height: 90vh;
         overflow-y: auto;
+        /* Hide thin scrollbar lines that look like a cyan bar */
+        scrollbar-width: none; /* Firefox */
     }
 
-    @keyframes fadeIn {
+    .modal-content::-webkit-scrollbar {
+        width: 0; /* Safari/Chrome */
+    }
+
+    @keyframes modalFadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
     }
 
-    @keyframes slideUp {
+    @keyframes modalSlideUp {
         from {
             opacity: 0;
             transform: translateY(20px);
@@ -555,17 +651,34 @@
 
     /* Table Animations */
     .member-row {
-        animation: slideInRight 0.4s ease;
+        animation: memberSlideIn 0.2s ease;
+        will-change: transform, opacity;
     }
 
-    @keyframes slideInRight {
+    @keyframes memberSlideIn {
         from {
             opacity: 0;
-            transform: translateX(20px);
+            transform: translateX(15px);
         }
         to {
             opacity: 1;
             transform: translateX(0);
+        }
+    }
+
+    /* Print Styles */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .print-area, .print-area * {
+            visibility: visible;
+        }
+        .print-area {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
         }
     }
 </style>
@@ -726,6 +839,56 @@ document.getElementById('searchMember').addEventListener('input', function(e) {
         const text = row.textContent.toLowerCase();
         row.style.display = text.includes(query) ? '' : 'none';
     });
+});
+
+// Barcode Modal Functions
+function showBarcodeModal(barcode, name, code) {
+    const modal = document.getElementById('barcodeModal');
+    const nameDisplay = document.getElementById('barcodeNameDisplay');
+    const codeDisplay = document.getElementById('barcodeCodeDisplay');
+    const barcodeImage = document.getElementById('barcodeImage');
+    
+    // Set member info
+    nameDisplay.textContent = name;
+    codeDisplay.textContent = code;
+    
+    // Generate barcode using JsBarcode
+    try {
+        JsBarcode(barcodeImage, barcode, {
+            format: "CODE128",
+            width: 2,
+            height: 80,
+            displayValue: true,
+            fontSize: 16,
+            margin: 10,
+            background: "#ffffff",
+            lineColor: "#000000"
+        });
+    } catch (error) {
+        console.error('Error generating barcode:', error);
+        showNotification('Gagal generate barcode', 'error');
+        return;
+    }
+    
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeBarcodeModal() {
+    const modal = document.getElementById('barcodeModal');
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+function printBarcode() {
+    window.print();
+}
+
+// Close barcode modal on background click
+document.getElementById('barcodeModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeBarcodeModal();
+    }
 });
 
 // Notification

@@ -8,6 +8,7 @@ class Member extends Model
 {
     protected $fillable = [
         'member_code',
+        'barcode',
         'name',
         'email',
         'phone',
@@ -33,5 +34,11 @@ class Member extends Model
         $number = $lastMember ? (int)substr($lastMember->member_code, -4) + 1 : 1;
         
         return $prefix . $date . str_pad($number, 4, '0', STR_PAD_LEFT);
+    }
+
+    // Generate unique barcode (same as member_code for simplicity)
+    public static function generateBarcode()
+    {
+        return self::generateMemberCode();
     }
 }

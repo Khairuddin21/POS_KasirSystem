@@ -38,6 +38,7 @@ class KasirController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'payment_method' => 'required|in:cash,card,qris,transfer',
             'paid' => 'required|numeric|min:0',
+            'member_id' => 'nullable|exists:members,id',
         ]);
 
         try {
@@ -83,6 +84,7 @@ class KasirController extends Controller
             $transaction = Transaction::create([
                 'transaction_code' => 'TRX-' . date('Ymd') . '-' . str_pad(Transaction::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT),
                 'user_id' => Auth::id(),
+                'member_id' => $request->member_id,
                 'subtotal' => $subtotal,
                 'tax' => $tax,
                 'total' => $total,

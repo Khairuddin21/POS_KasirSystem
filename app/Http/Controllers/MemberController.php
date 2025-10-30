@@ -23,6 +23,7 @@ class MemberController extends Controller
         ]);
 
         $validated['member_code'] = Member::generateMemberCode();
+        $validated['barcode'] = Member::generateBarcode();
         $validated['points'] = 0;
         $validated['is_active'] = true;
 
@@ -72,6 +73,25 @@ class MemberController extends Controller
             'success' => true,
             'message' => 'Status member berhasil diubah!',
             'member' => $member
+        ]);
+    }
+
+    public function search(Request $request)
+    {
+        $query = $request->get('q', '');
+        
+        $members = Member::where('is_active', true)
+            ->where(function($q) use ($query) {
+                $q->where('member_code', 'like', "%{$query}%")
+                  ->orWhere('name', 'like', "%{$query}%")
+                  ->orWhere('phone', 'like', "%{$query}%");
+            })
+            ->limit(10)
+            ->get(['id', 'member_code', 'name', 'phone', 'points']);
+        
+        return response()->json([
+            'success' => true,
+            'members' => $members
         ]);
     }
 }

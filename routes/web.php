@@ -70,6 +70,7 @@ Route::prefix('kasir')->middleware(['auth'])->group(function () {
     // Member Management Routes
     Route::get('/member', [MemberController::class, 'index'])->name('kasir.member');
     Route::post('/member', [MemberController::class, 'store'])->name('kasir.member.store');
+    Route::get('/member/search', [MemberController::class, 'search'])->name('kasir.member.search');
     Route::get('/member/{member}', function(\App\Models\Member $member) {
         return response()->json(['success' => true, 'member' => $member]);
     });

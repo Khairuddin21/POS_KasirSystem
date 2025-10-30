@@ -160,6 +160,10 @@
             <div class="cart-summary border-t border-gray-200 px-4 py-3 bg-gray-50">
                 <div class="space-y-2">
                     <div class="flex justify-between text-xs">
+                        <span class="text-gray-600">Total Barang</span>
+                        <span class="font-semibold text-gray-800" id="totalItems">0 items</span>
+                    </div>
+                    <div class="flex justify-between text-xs">
                         <span class="text-gray-600">Subtotal</span>
                         <span class="font-semibold text-gray-800" id="subtotal">Rp 0</span>
                     </div>
@@ -176,6 +180,45 @@
 
             <!-- Payment Section - Compact -->
             <div class="payment-section border-t border-gray-200 px-4 py-3">
+                <!-- Member Selection -->
+                <div class="mb-3">
+                    <label class="text-xs font-bold text-gray-700 mb-2 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        Member (Opsional)
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="memberSearch" 
+                            placeholder="Cari kode/nama member..."
+                            class="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            autocomplete="off"
+                        >
+                        <div id="memberDropdown" class="absolute top-full mt-1 w-full bg-white rounded-lg shadow-xl border-2 border-blue-100 max-h-60 overflow-y-auto z-50 hidden"></div>
+                        <input type="hidden" id="selectedMemberId" value="">
+                        <div id="selectedMemberDisplay" class="hidden mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                                        <span id="memberInitial">M</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-800" id="memberName">-</p>
+                                        <p class="text-xs text-gray-600" id="memberCode">-</p>
+                                    </div>
+                                </div>
+                                <button onclick="clearMemberSelection()" class="text-red-500 hover:text-red-700">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <label class="text-xs font-bold text-gray-700 block mb-2">Metode Pembayaran</label>
                 <div class="payment-methods grid grid-cols-4 gap-1 mb-3">
                     <button class="payment-method-btn active" data-method="cash" title="Tunai">
@@ -271,10 +314,10 @@
     }
 
     .search-results {
-        animation: slideDown 0.3s ease;
+        animation: searchSlideDown 0.3s ease;
     }
 
-    @keyframes slideDown {
+    @keyframes searchSlideDown {
         from {
             opacity: 0;
             transform: translateY(-10px);
@@ -578,13 +621,14 @@
         margin-bottom: 12px;
         border: 2px solid #e5e7eb;
         transition: all 0.3s ease;
-        animation: slideInRight 0.4s ease;
+        animation: cartSlideIn 0.2s ease;
+        will-change: transform, opacity;
     }
 
-    @keyframes slideInRight {
+    @keyframes cartSlideIn {
         from {
             opacity: 0;
-            transform: translateX(20px);
+            transform: translateX(15px);
         }
         to {
             opacity: 1;
@@ -723,6 +767,12 @@
         box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
     }
 
+    .payment-method-btn.active span {
+        /* Keep emoji in original colors (no inversion) */
+        filter: none;
+        transform: scale(1.1);
+    }
+
     .payment-input {
         transition: all 0.3s ease;
     }
@@ -732,10 +782,10 @@
     }
 
     .change-display {
-        animation: fadeIn 0.3s ease;
+        animation: changeFadeIn 0.3s ease;
     }
 
-    @keyframes fadeIn {
+    @keyframes changeFadeIn {
         from {
             opacity: 0;
             transform: scale(0.95);
@@ -769,6 +819,43 @@
         transform: scale(0.95);
     }
 
+    /* ========== PROCESS BUTTON (Fix visibility) ========== */
+    .process-btn {
+        /* Force gradient background and text color to avoid overrides */
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+    }
+
+    .process-btn:hover:not(:disabled) {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        transform: translateY(-1px);
+    }
+
+    .process-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* Remove global cyan outline that looked like a border in screenshots */
+    .process-btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+    }
+
+    /* Primary action button inside success modal */
+    .primary-action-btn {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+    }
+    .primary-action-btn:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+    }
+
     /* ========== EMPTY STATES ========== */
     .empty-cart-icon {
         animation: float 3s ease-in-out infinite;
@@ -799,7 +886,8 @@
         align-items: center;
         justify-content: center;
         z-index: 9999;
-        animation: fadeIn 0.3s ease;
+        animation: dashModalFade 0.3s ease;
+        will-change: opacity;
     }
 
     .modal-overlay.show {
@@ -809,13 +897,23 @@
     .modal-container {
         max-width: 500px;
         width: 90%;
-        animation: zoomIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: dashModalZoom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform, opacity;
     }
 
-    @keyframes zoomIn {
+    @keyframes dashModalFade {
         from {
             opacity: 0;
-            transform: scale(0.8) translateY(20px);
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes dashModalZoom {
+        from {
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
         }
         to {
             opacity: 1;
@@ -829,6 +927,7 @@
         padding: 32px;
         box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
         text-align: center;
+        position: relative; /* anchor for absolute close button */
     }
 
     .success-animation {
@@ -859,7 +958,8 @@
         stroke-dashoffset: 166;
         stroke-width: 3;
         stroke-miterlimit: 10;
-        stroke: #22c55e;
+        stroke: #ffffff; /* white outline for contrast on green */
+        fill: none;
         animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
     }
 
@@ -867,9 +967,12 @@
         transform-origin: 50% 50%;
         stroke-dasharray: 48;
         stroke-dashoffset: 48;
-        animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
-        stroke: #22c55e;
+        stroke: #ffffff; /* white check for visibility */
         stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+        animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
     }
 
     @keyframes stroke {
@@ -1085,6 +1188,7 @@
 <div id="successModal" class="modal-overlay">
     <div class="modal-container">
         <div class="modal-content">
+
             <div class="success-animation">
                 <div class="checkmark-circle">
                     <svg class="checkmark" viewBox="0 0 52 52">
@@ -1129,7 +1233,7 @@
                         Print Struk
                     </span>
                 </button>
-                <button onclick="closeSuccessModal()" class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300">
+                <button onclick="closeSuccessModal()" class="flex-1 py-3 primary-action-btn text-white font-bold rounded-xl transition-all duration-300">
                     Transaksi Baru
                 </button>
             </div>
@@ -1150,6 +1254,8 @@ let total = 0;
 let currentPaymentMethod = 'cash';
 let searchTimeout;
 let toastHideTimer = null; // timer untuk notifikasi agar tidak saling tumpang tindih
+let selectedMember = null; // member yang dipilih
+let memberSearchTimeout = null;
 
 // ========== INITIALIZE ==========
 document.addEventListener('DOMContentLoaded', function() {
@@ -1157,6 +1263,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCategoryFilter();
     initializeSearch();
     initializePaymentMethods();
+    initializeMemberSearch();
     updateCart();
     
     showNotification('🎉 POS System siap digunakan!', 'success');
@@ -1365,6 +1472,105 @@ function initializePaymentMethods() {
     });
 }
 
+// ========== MEMBER SEARCH ==========
+function initializeMemberSearch() {
+    const memberSearch = document.getElementById('memberSearch');
+    const memberDropdown = document.getElementById('memberDropdown');
+    
+    memberSearch.addEventListener('input', function(e) {
+        const query = e.target.value.trim();
+        
+        if (memberSearchTimeout) {
+            clearTimeout(memberSearchTimeout);
+        }
+        
+        if (query.length < 2) {
+            memberDropdown.classList.add('hidden');
+            return;
+        }
+        
+        memberSearchTimeout = setTimeout(() => {
+            searchMembers(query);
+        }, 300);
+    });
+    
+    memberSearch.addEventListener('focus', function() {
+        if (this.value.trim().length >= 2) {
+            memberDropdown.classList.remove('hidden');
+        }
+    });
+    
+    document.addEventListener('click', function(e) {
+        if (!memberSearch.contains(e.target) && !memberDropdown.contains(e.target)) {
+            memberDropdown.classList.add('hidden');
+        }
+    });
+}
+
+async function searchMembers(query) {
+    const memberDropdown = document.getElementById('memberDropdown');
+    
+    try {
+        const response = await fetch(`/kasir/member/search?q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        
+        if (data.success && data.members.length > 0) {
+            memberDropdown.innerHTML = data.members.map(member => `
+                <div class="member-item p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-0" 
+                     onclick="selectMember(${member.id}, '${member.name}', '${member.member_code}', ${member.points})">
+                    <div class="flex items-center gap-2">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
+                            ${member.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold text-gray-800">${member.name}</p>
+                            <p class="text-xs text-gray-600">${member.member_code} • ${member.phone}</p>
+                            <p class="text-xs text-blue-600 font-semibold">${member.points} poin</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            memberDropdown.classList.remove('hidden');
+        } else {
+            memberDropdown.innerHTML = `
+                <div class="p-4 text-center text-gray-400">
+                    <p class="text-sm">Member tidak ditemukan</p>
+                </div>
+            `;
+            memberDropdown.classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Error searching members:', error);
+        showNotification('❌ Gagal mencari member', 'error');
+    }
+}
+
+function selectMember(id, name, code, points) {
+    selectedMember = { id, name, code, points };
+    
+    document.getElementById('selectedMemberId').value = id;
+    document.getElementById('memberSearch').value = '';
+    document.getElementById('memberDropdown').classList.add('hidden');
+    
+    document.getElementById('memberInitial').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('memberName').textContent = name;
+    document.getElementById('memberCode').textContent = code + ' • ' + points + ' poin';
+    document.getElementById('selectedMemberDisplay').classList.remove('hidden');
+    document.getElementById('memberSearch').parentElement.querySelector('input[type="text"]').classList.add('hidden');
+    
+    showNotification(`✅ Member ${name} dipilih`, 'success');
+}
+
+function clearMemberSelection() {
+    selectedMember = null;
+    document.getElementById('selectedMemberId').value = '';
+    document.getElementById('selectedMemberDisplay').classList.add('hidden');
+    document.getElementById('memberSearch').parentElement.querySelector('input[type="text"]').classList.remove('hidden');
+    document.getElementById('memberSearch').value = '';
+    
+    showNotification('Member dibatalkan', 'info');
+}
+
 // ========== CART FUNCTIONALITY ==========
 function quickAddToCart(event, productId) {
     event.stopPropagation();
@@ -1525,6 +1731,9 @@ function calculateTotals() {
     tax = Math.round(subtotal * 0.1);
     total = subtotal + tax;
     
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    
+    document.getElementById('totalItems').textContent = `${totalItems} items`;
     document.getElementById('subtotal').textContent = 'Rp ' + formatNumber(subtotal);
     document.getElementById('tax').textContent = 'Rp ' + formatNumber(tax);
     document.getElementById('total').textContent = 'Rp ' + formatNumber(total);
@@ -1590,7 +1799,8 @@ function processTransaction() {
         subtotal: subtotal,
         tax: tax,
         total: total,
-        change: paid - total
+        change: paid - total,
+        member_id: selectedMember ? selectedMember.id : null
     };
     
     // Send to server
@@ -1607,6 +1817,8 @@ function processTransaction() {
         if (data.success) {
             showSuccessModal(data.transaction);
             cart = [];
+            selectedMember = null;
+            clearMemberSelection();
             updateCart();
             document.getElementById('paidAmount').value = '';
         } else {
