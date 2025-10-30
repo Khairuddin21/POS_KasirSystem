@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Kasir\KasirController;
+use App\Http\Controllers\MemberController;
 
 // Landing Page
 Route::get('/', function () {
@@ -65,6 +66,16 @@ Route::prefix('kasir')->middleware(['auth'])->group(function () {
     Route::get('/dashboard', [KasirController::class, 'dashboard'])->name('kasir.dashboard');
     
     Route::post('/transaction/process', [KasirController::class, 'processTransaction'])->name('kasir.transaction.process');
+    
+    // Member Management Routes
+    Route::get('/member', [MemberController::class, 'index'])->name('kasir.member');
+    Route::post('/member', [MemberController::class, 'store'])->name('kasir.member.store');
+    Route::get('/member/{member}', function(\App\Models\Member $member) {
+        return response()->json(['success' => true, 'member' => $member]);
+    });
+    Route::put('/member/{member}', [MemberController::class, 'update'])->name('kasir.member.update');
+    Route::delete('/member/{member}', [MemberController::class, 'destroy'])->name('kasir.member.destroy');
+    Route::post('/member/{member}/toggle-status', [MemberController::class, 'toggleStatus'])->name('kasir.member.toggle');
     
     Route::get('/transaction', function () {
         return view('kasir.transaction');
