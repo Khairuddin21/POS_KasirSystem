@@ -1181,6 +1181,154 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+
+    /* ========== PRINT STYLES ========== */
+    @media print {
+        body * {
+            visibility: hidden !important;
+        }
+        
+        #printReceipt,
+        #printReceipt * {
+            visibility: visible !important;
+        }
+        
+        #printReceipt {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            display: block !important;
+        }
+        
+        .receipt-container {
+            width: 80mm;
+            max-width: 80mm;
+            margin: 0 auto;
+            padding: 10mm 5mm;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #000;
+        }
+        
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        
+        .receipt-header h2 {
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 0 0 6px 0;
+            letter-spacing: 2px;
+        }
+        
+        .receipt-header p {
+            margin: 2px 0;
+            font-size: 10pt;
+        }
+        
+        .receipt-divider {
+            margin: 8px 0;
+            text-align: left;
+            font-size: 9pt;
+            letter-spacing: 0px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        
+        .receipt-info,
+        .receipt-totals,
+        .receipt-payment {
+            margin: 8px 0;
+        }
+        
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+            font-size: 10pt;
+        }
+        
+        .receipt-row.receipt-total {
+            font-weight: bold;
+            font-size: 11pt;
+            margin-top: 6px;
+        }
+        
+        .receipt-items-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 10pt;
+        }
+        
+        .receipt-items-header span:first-child {
+            flex: 1;
+        }
+        
+        .receipt-items-header span:nth-child(2) {
+            width: 40px;
+            text-align: center;
+        }
+        
+        .receipt-items-header span:last-child {
+            width: 80px;
+            text-align: right;
+        }
+        
+        .receipt-item {
+            margin: 6px 0;
+        }
+        
+        .receipt-item-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10pt;
+        }
+        
+        .receipt-item-name {
+            flex: 1;
+        }
+        
+        .receipt-item-qty {
+            width: 40px;
+            text-align: center;
+        }
+        
+        .receipt-item-price {
+            width: 80px;
+            text-align: right;
+        }
+        
+        .receipt-item-detail {
+            font-size: 9pt;
+            color: #666;
+            margin-top: 2px;
+        }
+        
+        .receipt-footer {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 9pt;
+        }
+        
+        .receipt-footer p {
+            margin: 3px 0;
+        }
+        
+        @page {
+            size: 80mm auto;
+            margin: 0;
+        }
+        
+        /* Hide modal buttons and any UI overlays when printing */
+        .no-print { display: none !important; }
+        #notificationToast, .notification-toast { display: none !important; visibility: hidden !important; opacity: 0 !important; }
+        .modal-overlay { display: none !important; visibility: hidden !important; }
+    }
 </style>
 @endpush
 
@@ -1224,7 +1372,7 @@
                 </div>
             </div>
 
-            <div class="flex space-x-3">
+            <div class="flex space-x-3 no-print">
                 <button onclick="printReceipt()" class="flex-1 py-3 bg-white border-2 border-blue-600 text-blue-600 font-bold rounded-xl hover:bg-blue-50 transition-all duration-300">
                     <span class="flex items-center justify-center">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1243,6 +1391,96 @@
 
 <!-- Notification Toast -->
 <div id="notificationToast" class="notification-toast"></div>
+
+<!-- Print Receipt Template (Hidden) -->
+<div id="printReceipt" style="display: none;">
+    <div class="receipt-container">
+        <div class="receipt-header">
+            <h2>EMPUSHOP</h2>
+            <p>Jl. jalan ke cikini</p>
+            <p>Telp: (021) 12345678</p>
+            <p>Email: emposhopempupipu.com</p>
+        </div>
+        
+        <div class="receipt-divider">------------------------------------</div>
+        
+        <div class="receipt-info">
+            <div class="receipt-row">
+                <span>No. Transaksi:</span>
+                <span id="print-transaction-number"></span>
+            </div>
+            <div class="receipt-row">
+                <span>Kode Transaksi:</span>
+                <span id="print-transaction-code"></span>
+            </div>
+            <div class="receipt-row">
+                <span>Tanggal:</span>
+                <span id="print-date"></span>
+            </div>
+            <div class="receipt-row">
+                <span>Kasir:</span>
+                <span id="print-cashier"></span>
+            </div>
+            <div class="receipt-row">
+                <span>Pelanggan:</span>
+                <span id="print-customer"></span>
+            </div>
+        </div>
+        
+        <div class="receipt-divider">------------------------------------</div>
+        
+        <div class="receipt-items">
+            <div class="receipt-items-header">
+                <span>Item</span>
+                <span>Qty</span>
+                <span>Harga</span>
+            </div>
+            <div id="print-items-list"></div>
+        </div>
+        
+        <div class="receipt-divider">------------------------------------</div>
+        
+        <div class="receipt-totals">
+            <div class="receipt-row">
+                <span>Subtotal:</span>
+                <span id="print-subtotal"></span>
+            </div>
+            <div class="receipt-row">
+                <span>Pajak:</span>
+                <span id="print-tax"></span>
+            </div>
+            <div class="receipt-row receipt-total">
+                <span>TOTAL:</span>
+                <span id="print-total"></span>
+            </div>
+        </div>
+        
+        <div class="receipt-divider">------------------------------------</div>
+        
+        <div class="receipt-payment">
+            <div class="receipt-row">
+                <span>Metode Bayar:</span>
+                <span id="print-payment-method"></span>
+            </div>
+            <div class="receipt-row">
+                <span>Bayar:</span>
+                <span id="print-paid"></span>
+            </div>
+            <div class="receipt-row">
+                <span>Kembalian:</span>
+                <span id="print-change"></span>
+            </div>
+        </div>
+        
+        <div class="receipt-divider">------------------------------------</div>
+        
+        <div class="receipt-footer">
+            <p>Terima kasih atas kunjungan Anda!</p>
+            <p>Barang yang sudah dibeli tidak dapat dikembalikan</p>
+            <p id="print-timestamp"></p>
+        </div>
+    </div>
+</div>
 
 @push('scripts')
 <script>
@@ -1855,9 +2093,70 @@ function closeSuccessModal() {
 }
 
 function printReceipt() {
-    showNotification('🖨️ Mencetak struk...', 'info');
-    // Implement print functionality
-    window.print();
+    // Get current transaction data from modal
+    const transactionCode = document.getElementById('modalTransCode').textContent;
+    const transactionDate = document.getElementById('modalDate').textContent;
+    const transactionTotal = document.getElementById('modalTotal').textContent;
+    const transactionPaid = document.getElementById('modalPaid').textContent;
+    const transactionChange = document.getElementById('modalChange').textContent;
+    
+    // Populate print template
+    document.getElementById('print-transaction-number').textContent = '#' + cart.length;
+    document.getElementById('print-transaction-code').textContent = transactionCode;
+    document.getElementById('print-date').textContent = transactionDate;
+    document.getElementById('print-cashier').textContent = '{{ Auth::user()->name ?? "Kasir 1" }}';
+    document.getElementById('print-customer').textContent = selectedMember ? selectedMember.name : 'Umum';
+    
+    // Payment method text
+    const paymentMethods = {
+        'cash': 'Tunai',
+        'card': 'Kartu',
+        'qris': 'QRIS',
+        'transfer': 'Transfer'
+    };
+    document.getElementById('print-payment-method').textContent = paymentMethods[currentPaymentMethod] || 'Tunai';
+    
+    // Populate items
+    const itemsList = document.getElementById('print-items-list');
+    itemsList.innerHTML = '';
+    
+    cart.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'receipt-item';
+        itemDiv.innerHTML = `
+            <div class="receipt-item-row">
+                <span class="receipt-item-name">${item.name}</span>
+                <span class="receipt-item-qty">${item.quantity}</span>
+                <span class="receipt-item-price">Rp ${formatNumber(item.price * item.quantity)}</span>
+            </div>
+            <div class="receipt-item-detail">@ Rp ${formatNumber(item.price)}</div>
+        `;
+        itemsList.appendChild(itemDiv);
+    });
+    
+    // Populate totals
+    document.getElementById('print-subtotal').textContent = 'Rp ' + formatNumber(subtotal);
+    document.getElementById('print-tax').textContent = 'Rp ' + formatNumber(tax);
+    document.getElementById('print-total').textContent = transactionTotal;
+    document.getElementById('print-paid').textContent = transactionPaid;
+    document.getElementById('print-change').textContent = transactionChange;
+    
+    // Timestamp
+    const now = new Date();
+    const timestamp = now.toLocaleString('id-ID', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    document.getElementById('print-timestamp').textContent = timestamp;
+    
+    // Trigger print after content is populated
+    setTimeout(() => {
+        window.print();
+    }, 100);
 }
 
 // ========== NOTIFICATIONS ==========
