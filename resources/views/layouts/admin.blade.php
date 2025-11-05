@@ -10,6 +10,9 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
     
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.min.css">
+    
     <!-- Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
@@ -26,11 +29,16 @@
             @include('components.admin.header')
             
             <!-- Page Content -->
-            <main class="flex-1 p-6">
-                @yield('content')
+            <main class="flex-1 p-6 overflow-auto">
+                <div class="max-w-7xl mx-auto">
+                    @yield('content')
+                </div>
             </main>
         </div>
     </div>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.all.min.js"></script>
     
     @stack('scripts')
 </body>

@@ -1,11 +1,11 @@
 <!-- Admin Sidebar -->
-<aside class="w-64 bg-gray-900 text-white min-h-screen">
+<aside class="w-64 bg-gray-900 text-white min-h-screen flex flex-col">
     <div class="p-6">
         <h2 class="text-2xl font-bold mb-2"><span class="text-cyan-500">POS</span>Kasir</h2>
         <p class="text-gray-400 text-sm">Admin Panel</p>
     </div>
     
-    <nav class="mt-6">
+    <nav class="mt-6 flex-1">
         <a href="/admin/dashboard" class="flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-cyan-500 transition-colors {{ request()->is('admin/dashboard') ? 'bg-gray-800 text-cyan-500 border-l-4 border-cyan-500' : '' }}">
             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
@@ -50,7 +50,8 @@
         </a>
     </nav>
     
-    <div class="absolute bottom-0 w-64 p-6 border-t border-gray-800">
+    <!-- Logout Button - Always at Bottom -->
+    <div class="p-6 border-t border-gray-800 mt-auto">
         <form method="POST" action="/logout">
             @csrf
             <button type="submit" class="flex items-center text-gray-300 hover:text-red-500 transition-colors w-full">

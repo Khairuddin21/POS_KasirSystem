@@ -159,6 +159,7 @@ class KasirController extends Controller
         $dateFrom = $request->get('from', now()->startOfMonth()->format('Y-m-d'));
         $dateTo = $request->get('to', now()->format('Y-m-d'));
         $page = $request->get('page', 1);
+        $search = $request->get('search', ''); // Get search parameter
         $perPage = 10; // 10 items per page
 
         try {
@@ -171,6 +172,20 @@ class KasirController extends Controller
                 ->where('user_id', Auth::id())
                 ->with(['items', 'user', 'member'])
                 ->orderBy('created_at', 'desc');
+
+            // Apply search filter if search keyword exists
+            if (!empty($search)) {
+                $transactionsQuery->where(function($query) use ($search) {
+                    // Search by transaction code
+                    $query->where('transaction_code', 'LIKE', "%{$search}%")
+                        // Search by member name
+                        ->orWhereHas('member', function($q) use ($search) {
+                            $q->where('name', 'LIKE', "%{$search}%")
+                              // Search by member code
+                              ->orWhere('member_code', 'LIKE', "%{$search}%");
+                        });
+                });
+            }
 
             // Get all for statistics and chart
             $allTransactions = $transactionsQuery->get();
@@ -199,6 +214,7 @@ class KasirController extends Controller
                     'created_at' => $transaction->created_at->format('Y-m-d H:i:s'),
                     'cashier_name' => $transaction->user->name,
                     'customer_name' => $transaction->member ? $transaction->member->name : null,
+                    'member_code' => $transaction->member ? $transaction->member->member_code : null,
                     'total_items' => $transaction->items->sum('quantity'),
                     'total' => $transaction->total,
                     'payment_method' => $transaction->payment_method,

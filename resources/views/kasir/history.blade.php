@@ -148,6 +148,25 @@
                     Menampilkan <span id="recordFrom" class="font-semibold">0</span> - <span id="recordTo" class="font-semibold">0</span> dari <span id="recordTotal" class="font-semibold">0</span> data
                 </div>
             </div>
+
+            <!-- Search Bar -->
+            <div class="mb-4">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" 
+                        placeholder="Cari berdasarkan nama pelanggan, kode member, atau kode transaksi..."
+                        onkeyup="handleSearch(event)"
+                    >
+                </div>
+                <div id="searchInfo" class="mt-2 text-sm text-gray-600 hidden">
+                    Menampilkan hasil pencarian untuk: <span id="searchKeyword" class="font-semibold text-blue-600"></span>
+                    <button onclick="clearSearch()" class="ml-2 text-red-600 hover:text-red-800 font-semibold">
+                        ✕ Hapus pencarian
+                    </button>
+                </div>
+            </div>
             
             <div class="overflow-x-auto">
                 <table class="w-full" id="transactionsTable">
@@ -373,6 +392,7 @@ let currentData = [];
 let currentPage = 1;
 let totalPages = 1;
 let currentPagination = null;
+let searchKeyword = ''; // Variable to store search keyword
 
 // ========== ROUTE URLS (server-generated to support subfolder deployments) ==========
 const URL_DATA = "{{ route('kasir.history.data') }}";
@@ -440,7 +460,7 @@ async function loadReport(page = 1) {
         return;
     }
 
-    console.log('Filter params:', { period: periodValue, from: dateFromValue, to: dateToValue, page });
+    console.log('Filter params:', { period: periodValue, from: dateFromValue, to: dateToValue, page, search: searchKeyword });
     
     showLoading();
     // Disable filter button during load to prevent double clicks
@@ -457,6 +477,12 @@ async function loadReport(page = 1) {
             to: dateToValue,
             page: String(page)
         });
+        
+        // Add search parameter if exists
+        if (searchKeyword) {
+            params.append('search', searchKeyword);
+        }
+        
         const url = `${URL_DATA}?${params.toString()}`;
         console.log('Fetching:', url);
         
@@ -593,6 +619,13 @@ function updateTable(data, pagination) {
 
     data.forEach((transaction, index) => {
         const actualIndex = (pagination.current_page - 1) * pagination.per_page + index + 1;
+        
+        // Format customer info with member code if available
+        let customerDisplay = transaction.customer_name || 'Umum';
+        if (transaction.member_code) {
+            customerDisplay = `${transaction.customer_name} <span class="text-xs text-gray-500">(${transaction.member_code})</span>`;
+        }
+        
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-50 transition-colors';
         row.innerHTML = `
@@ -600,7 +633,7 @@ function updateTable(data, pagination) {
             <td class="px-4 py-3 text-sm font-semibold text-blue-600">${transaction.transaction_code}</td>
             <td class="px-4 py-3 text-sm text-gray-900">${formatDate(transaction.created_at)}</td>
             <td class="px-4 py-3 text-sm text-gray-900">${transaction.cashier_name}</td>
-            <td class="px-4 py-3 text-sm text-gray-900">${transaction.customer_name || 'Umum'}</td>
+            <td class="px-4 py-3 text-sm text-gray-900">${customerDisplay}</td>
             <td class="px-4 py-3 text-sm text-center">
                 <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
                     ${transaction.total_items} item
@@ -921,6 +954,54 @@ function showEmpty() {
     document.getElementById('paginationContainer').classList.add('hidden');
 }
 
+// ========== SEARCH FUNCTIONS ==========
+function handleSearch(event) {
+    // Optional: trigger search on Enter key
+    if (event.key === 'Enter') {
+        performSearch();
+    }
+    // Optional: auto-search after user stops typing for 500ms
+    clearTimeout(window.searchTimeout);
+    window.searchTimeout = setTimeout(() => {
+        performSearch();
+    }, 500);
+}
+
+function performSearch() {
+    const searchInput = document.getElementById('searchInput');
+    const searchValue = searchInput.value.trim();
+    
+    searchKeyword = searchValue;
+    
+    // Update search info display
+    const searchInfo = document.getElementById('searchInfo');
+    const searchKeywordSpan = document.getElementById('searchKeyword');
+    
+    if (searchKeyword) {
+        searchKeywordSpan.textContent = searchKeyword;
+        searchInfo.classList.remove('hidden');
+    } else {
+        searchInfo.classList.add('hidden');
+    }
+    
+    // Reset to page 1 when searching
+    currentPage = 1;
+    loadReport(1);
+}
+
+function clearSearch() {
+    const searchInput = document.getElementById('searchInput');
+    const searchInfo = document.getElementById('searchInfo');
+    
+    searchInput.value = '';
+    searchKeyword = '';
+    searchInfo.classList.add('hidden');
+    
+    // Reload data without search
+    currentPage = 1;
+    loadReport(1);
+}
+
 // Expose functions to global scope for inline onclick handlers
 // Note: Keeping IIFE isolation but publishing only the needed API
 window.loadReport = loadReport;
@@ -928,6 +1009,9 @@ window.exportExcel = exportExcel;
 window.exportPDF = exportPDF;
 window.viewDetail = viewDetail;
 window.closeDetailModal = closeDetailModal;
+window.handleSearch = handleSearch;
+window.performSearch = performSearch;
+window.clearSearch = clearSearch;
 
 // ========== END IIFE ==========
 })(); // Close the isolation wrapper

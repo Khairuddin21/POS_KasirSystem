@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Kasir\KasirController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\UserController;
 
 // Landing Page
 Route::get('/', function () {
@@ -35,13 +37,16 @@ Route::prefix('admin')->group(function () {
     Route::post('/login', [AuthController::class, 'adminLogin'])->name('admin.login.post');
     
     Route::middleware(['auth'])->group(function () {
-        Route::get('/dashboard', function () {
-            return view('admin.dashboard');
-        })->name('admin.dashboard');
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+        Route::get('/dashboard/data', [AdminController::class, 'getDashboardData'])->name('admin.dashboard.data');
         
-        Route::get('/users', function () {
-            return view('admin.users');
-        })->name('admin.users');
+        // User Management Routes
+        Route::get('/users', [UserController::class, 'index'])->name('admin.users');
+        Route::post('/users', [UserController::class, 'store'])->name('admin.users.store');
+        Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show');
+        Route::put('/users/{id}', [UserController::class, 'update'])->name('admin.users.update');
+        Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+        Route::post('/users/{id}/reset-password', [UserController::class, 'resetPassword'])->name('admin.users.reset-password');
         
         Route::get('/products', function () {
             return view('admin.products');
