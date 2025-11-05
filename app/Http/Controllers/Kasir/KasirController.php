@@ -162,25 +162,11 @@ class KasirController extends Controller
         $perPage = 10; // 10 items per page
 
         try {
-            // Build date range
+            // Build date range - RESPECT USER'S FILTER SELECTION
             $startDate = \Carbon\Carbon::parse($dateFrom)->startOfDay();
             $endDate = \Carbon\Carbon::parse($dateTo)->endOfDay();
 
-            // For daily period ONLY: limit the visible data to the last 3 days (UI-only retention)
-            // This avoids deleting any data and keeps monthly/yearly reports intact.
-            if ($period === 'daily') {
-                $minDailyDate = now()->copy()->subDays(2)->startOfDay(); // today and previous 2 days = 3 days window
-                if ($startDate->lt($minDailyDate)) {
-                    $startDate = $minDailyDate;
-                }
-                $maxDailyDate = now()->endOfDay();
-                if ($endDate->gt($maxDailyDate)) {
-                    $endDate = $maxDailyDate;
-                }
-            }
-
             // Get transactions for the period with pagination
-            // Apply date filter AFTER deletion to show remaining data
             $transactionsQuery = Transaction::whereBetween('created_at', [$startDate, $endDate])
                 ->where('user_id', Auth::id())
                 ->with(['items', 'user', 'member'])
@@ -348,7 +334,11 @@ class KasirController extends Controller
         $dateFrom = $request->get('from', now()->startOfMonth()->format('Y-m-d'));
         $dateTo = $request->get('to', now()->format('Y-m-d'));
 
-        $transactions = Transaction::whereBetween('created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+        // Use Carbon for proper date parsing
+        $startDate = \Carbon\Carbon::parse($dateFrom)->startOfDay();
+        $endDate = \Carbon\Carbon::parse($dateTo)->endOfDay();
+
+        $transactions = Transaction::whereBetween('created_at', [$startDate, $endDate])
             ->where('user_id', Auth::id())
             ->with(['items', 'user', 'member'])
             ->orderBy('created_at', 'desc')
@@ -430,7 +420,11 @@ class KasirController extends Controller
         $dateFrom = $request->get('from', now()->startOfMonth()->format('Y-m-d'));
         $dateTo = $request->get('to', now()->format('Y-m-d'));
 
-        $transactions = Transaction::whereBetween('created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+        // Use Carbon for proper date parsing
+        $startDate = \Carbon\Carbon::parse($dateFrom)->startOfDay();
+        $endDate = \Carbon\Carbon::parse($dateTo)->endOfDay();
+
+        $transactions = Transaction::whereBetween('created_at', [$startDate, $endDate])
             ->where('user_id', Auth::id())
             ->with(['items', 'user', 'member'])
             ->orderBy('created_at', 'desc')

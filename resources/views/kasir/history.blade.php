@@ -814,19 +814,55 @@ function closeDetailModal() {
 
 // ========== EXPORT FUNCTIONS ==========
 async function exportExcel() {
-    const periodType = document.getElementById('periodType').value;
-    const dateFrom = document.getElementById('dateFrom').value;
-    const dateTo = document.getElementById('dateTo').value;
-    const params = new URLSearchParams({ period: periodType, from: dateFrom, to: dateTo });
-    window.location.href = `${URL_EXPORT_EXCEL}?${params.toString()}`;
+    const periodType = document.getElementById('periodType');
+    const dateFrom = document.getElementById('dateFrom');
+    const dateTo = document.getElementById('dateTo');
+    
+    if (!periodType || !dateFrom || !dateTo) {
+        alert('Error: Form elements not found!');
+        return;
+    }
+    
+    if (!dateFrom.value || !dateTo.value) {
+        alert('Mohon pilih tanggal terlebih dahulu');
+        return;
+    }
+    
+    const params = new URLSearchParams({ 
+        period: periodType.value, 
+        from: dateFrom.value, 
+        to: dateTo.value 
+    });
+    
+    const url = `${URL_EXPORT_EXCEL}?${params.toString()}`;
+    console.log('Export Excel URL:', url);
+    window.location.href = url;
 }
 
 async function exportPDF() {
-    const periodType = document.getElementById('periodType').value;
-    const dateFrom = document.getElementById('dateFrom').value;
-    const dateTo = document.getElementById('dateTo').value;
-    const params = new URLSearchParams({ period: periodType, from: dateFrom, to: dateTo });
-    window.location.href = `${URL_EXPORT_PDF}?${params.toString()}`;
+    const periodType = document.getElementById('periodType');
+    const dateFrom = document.getElementById('dateFrom');
+    const dateTo = document.getElementById('dateTo');
+    
+    if (!periodType || !dateFrom || !dateTo) {
+        alert('Error: Form elements not found!');
+        return;
+    }
+    
+    if (!dateFrom.value || !dateTo.value) {
+        alert('Mohon pilih tanggal terlebih dahulu');
+        return;
+    }
+    
+    const params = new URLSearchParams({ 
+        period: periodType.value, 
+        from: dateFrom.value, 
+        to: dateTo.value 
+    });
+    
+    const url = `${URL_EXPORT_PDF}?${params.toString()}`;
+    console.log('Export PDF URL:', url);
+    window.location.href = url;
 }
 
 // ========== UTILITY FUNCTIONS ==========
@@ -884,6 +920,14 @@ function showEmpty() {
     document.getElementById('recordTotal').textContent = '0';
     document.getElementById('paginationContainer').classList.add('hidden');
 }
+
+// Expose functions to global scope for inline onclick handlers
+// Note: Keeping IIFE isolation but publishing only the needed API
+window.loadReport = loadReport;
+window.exportExcel = exportExcel;
+window.exportPDF = exportPDF;
+window.viewDetail = viewDetail;
+window.closeDetailModal = closeDetailModal;
 
 // ========== END IIFE ==========
 })(); // Close the isolation wrapper

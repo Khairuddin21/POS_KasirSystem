@@ -84,9 +84,9 @@ Route::prefix('kasir')->middleware(['auth'])->group(function () {
     
     Route::get('/history', [KasirController::class, 'history'])->name('kasir.history');
     Route::get('/history/data', [KasirController::class, 'getReportData'])->name('kasir.history.data');
-    Route::get('/history/{id}', [KasirController::class, 'getTransactionDetail'])->name('kasir.history.detail');
     Route::get('/history/export/excel', [KasirController::class, 'exportExcel'])->name('kasir.history.export.excel');
     Route::get('/history/export/pdf', [KasirController::class, 'exportPDF'])->name('kasir.history.export.pdf');
+    Route::get('/history/{id}', [KasirController::class, 'getTransactionDetail'])->name('kasir.history.detail');
     
     Route::get('/products', function () {
         return view('kasir.products');
