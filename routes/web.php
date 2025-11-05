@@ -92,9 +92,8 @@ Route::prefix('kasir')->middleware(['auth'])->group(function () {
         return view('kasir.products');
     })->name('kasir.products');
     
-    Route::get('/report', function () {
-        return view('kasir.report');
-    })->name('kasir.report');
+    Route::get('/report', [KasirController::class, 'dailyReport'])->name('kasir.report');
+    Route::get('/report/data', [KasirController::class, 'getDailyReportData'])->name('kasir.report.data');
 });
 
 // User Routes

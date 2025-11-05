@@ -4,14 +4,13 @@ namespace App\Http\Controllers\Kasir;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Member;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
-use App\Exports\KasirTransactionExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class KasirController extends Controller
@@ -113,12 +112,31 @@ class KasirController extends Controller
                 $item['product']->decrement('stock', $item['quantity']);
             }
 
+            // Update member points and rating if member was used
+            if ($request->member_id) {
+                $member = Member::find($request->member_id);
+                if ($member) {
+                    $member->addPurchase($total);
+                    // Reload to get updated values
+                    $member->refresh();
+                }
+            }
+
             DB::commit();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Transaksi berhasil!',
-                'transaction' => $transaction->load('items'),
+                'transaction' => $transaction->load('items', 'member'),
+                'member_used' => $request->member_id ? true : false,
+                'member_info' => $request->member_id && isset($member) ? [
+                    'name' => $member->name,
+                    'code' => $member->member_code,
+                    'points' => $member->points,
+                    'rating' => $member->rating,
+                    'rating_stars' => $member->rating_stars,
+                    'total_spent' => $member->total_spent
+                ] : null
             ]);
 
         } catch (\Exception $e) {
@@ -140,30 +158,55 @@ class KasirController extends Controller
         $period = $request->get('period', 'daily');
         $dateFrom = $request->get('from', now()->startOfMonth()->format('Y-m-d'));
         $dateTo = $request->get('to', now()->format('Y-m-d'));
+        $page = $request->get('page', 1);
+        $perPage = 10; // 10 items per page
 
         try {
-            // Get transactions for the period
-            $transactions = Transaction::whereBetween('created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+            // Build date range
+            $startDate = \Carbon\Carbon::parse($dateFrom)->startOfDay();
+            $endDate = \Carbon\Carbon::parse($dateTo)->endOfDay();
+
+            // For daily period ONLY: limit the visible data to the last 3 days (UI-only retention)
+            // This avoids deleting any data and keeps monthly/yearly reports intact.
+            if ($period === 'daily') {
+                $minDailyDate = now()->copy()->subDays(2)->startOfDay(); // today and previous 2 days = 3 days window
+                if ($startDate->lt($minDailyDate)) {
+                    $startDate = $minDailyDate;
+                }
+                $maxDailyDate = now()->endOfDay();
+                if ($endDate->gt($maxDailyDate)) {
+                    $endDate = $maxDailyDate;
+                }
+            }
+
+            // Get transactions for the period with pagination
+            // Apply date filter AFTER deletion to show remaining data
+            $transactionsQuery = Transaction::whereBetween('created_at', [$startDate, $endDate])
                 ->where('user_id', Auth::id())
                 ->with(['items', 'user', 'member'])
-                ->orderBy('created_at', 'desc')
-                ->get();
+                ->orderBy('created_at', 'desc');
+
+            // Get all for statistics and chart
+            $allTransactions = $transactionsQuery->get();
+
+            // Paginate for table
+            $paginatedTransactions = (clone $transactionsQuery)->paginate($perPage);
 
             // Calculate statistics
             $statistics = [
-                'totalTransactions' => $transactions->count(),
-                'totalSales' => $transactions->sum('total'),
-                'totalItems' => $transactions->sum(function($transaction) {
+                'totalTransactions' => $allTransactions->count(),
+                'totalSales' => $allTransactions->sum('total'),
+                'totalItems' => $allTransactions->sum(function($transaction) {
                     return $transaction->items->sum('quantity');
                 }),
-                'avgTransaction' => $transactions->count() > 0 ? $transactions->avg('total') : 0,
+                'avgTransaction' => $allTransactions->count() > 0 ? $allTransactions->avg('total') : 0,
             ];
 
             // Prepare chart data based on period
-            $chartData = $this->prepareChartData($transactions, $period, $dateFrom, $dateTo);
+            $chartData = $this->prepareChartData($allTransactions, $period, $startDate->toDateString(), $endDate->toDateString());
 
             // Format transaction data
-            $data = $transactions->map(function($transaction) {
+            $data = $paginatedTransactions->map(function($transaction) {
                 return [
                     'id' => $transaction->id,
                     'transaction_code' => $transaction->transaction_code,
@@ -181,6 +224,14 @@ class KasirController extends Controller
                 'statistics' => $statistics,
                 'chartData' => $chartData,
                 'data' => $data,
+                'pagination' => [
+                    'current_page' => $paginatedTransactions->currentPage(),
+                    'last_page' => $paginatedTransactions->lastPage(),
+                    'per_page' => $paginatedTransactions->perPage(),
+                    'total' => $paginatedTransactions->total(),
+                    'from' => $paginatedTransactions->firstItem(),
+                    'to' => $paginatedTransactions->lastItem(),
+                ],
             ]);
 
         } catch (\Exception $e) {
@@ -303,10 +354,74 @@ class KasirController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return Excel::download(
-            new KasirTransactionExport($transactions, $dateFrom, $dateTo),
-            'laporan-penjualan-' . $dateFrom . '-' . $dateTo . '.xlsx'
-        );
+        $statistics = [
+            'totalTransactions' => $transactions->count(),
+            'totalSales' => $transactions->sum('total'),
+            'totalItems' => $transactions->sum(function($transaction) {
+                return $transaction->items->sum('quantity');
+            }),
+            'avgTransaction' => $transactions->count() > 0 ? $transactions->avg('total') : 0,
+        ];
+
+        // Generate CSV
+        $filename = 'laporan-penjualan-' . $dateFrom . '-' . $dateTo . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $callback = function() use ($transactions, $statistics, $dateFrom, $dateTo) {
+            $file = fopen('php://output', 'w');
+            
+            // UTF-8 BOM for Excel compatibility
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            // Header
+            fputcsv($file, ['LAPORAN PENJUALAN KASIR']);
+            fputcsv($file, ['Periode: ' . $dateFrom . ' s/d ' . $dateTo]);
+            fputcsv($file, ['']);
+            
+            // Statistics
+            fputcsv($file, ['Total Transaksi', $statistics['totalTransactions']]);
+            fputcsv($file, ['Total Penjualan', 'Rp ' . number_format($statistics['totalSales'], 0, ',', '.')]);
+            fputcsv($file, ['Total Item', $statistics['totalItems']]);
+            fputcsv($file, ['Rata-rata', 'Rp ' . number_format($statistics['avgTransaction'], 0, ',', '.')]);
+            fputcsv($file, ['']);
+            
+            // Table header
+            fputcsv($file, [
+                'No',
+                'Kode Transaksi',
+                'Tanggal',
+                'Kasir',
+                'Pelanggan',
+                'Items',
+                'Total',
+                'Metode Bayar'
+            ]);
+            
+            // Data
+            foreach ($transactions as $index => $transaction) {
+                fputcsv($file, [
+                    $index + 1,
+                    $transaction->transaction_code,
+                    $transaction->created_at->format('d/m/Y H:i'),
+                    $transaction->user->name,
+                    $transaction->member ? $transaction->member->name : 'Umum',
+                    $transaction->items->sum('quantity'),
+                    'Rp ' . number_format($transaction->total, 0, ',', '.'),
+                    ucfirst($transaction->payment_method)
+                ]);
+            }
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function exportPDF(Request $request)
@@ -339,5 +454,94 @@ class KasirController extends Controller
         ]);
 
         return $pdf->download('laporan-penjualan-' . $dateFrom . '-' . $dateTo . '.pdf');
+    }
+
+    public function dailyReport()
+    {
+        return view('kasir.report');
+    }
+
+    public function getDailyReportData(Request $request)
+    {
+        $date = $request->get('date', now()->format('Y-m-d'));
+        $userId = Auth::id();
+
+        try {
+            // Get user profile
+            $user = Auth::user();
+            $profile = [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'member_since' => $user->created_at->format('d M Y'),
+            ];
+
+            // Get today's transactions
+            $todayStart = \Carbon\Carbon::parse($date)->startOfDay();
+            $todayEnd = \Carbon\Carbon::parse($date)->endOfDay();
+
+            $transactions = Transaction::whereBetween('created_at', [$todayStart, $todayEnd])
+                ->where('user_id', $userId)
+                ->with(['items'])
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            // Calculate daily statistics
+            $statistics = [
+                'totalTransactions' => $transactions->count(),
+                'totalSales' => $transactions->sum('total'),
+                'totalItems' => $transactions->sum(function($transaction) {
+                    return $transaction->items->sum('quantity');
+                }),
+                'avgTransaction' => $transactions->count() > 0 ? $transactions->avg('total') : 0,
+                'cashTransactions' => $transactions->where('payment_method', 'cash')->count(),
+                'cardTransactions' => $transactions->where('payment_method', 'card')->count(),
+                'qrisTransactions' => $transactions->where('payment_method', 'qris')->count(),
+                'transferTransactions' => $transactions->where('payment_method', 'transfer')->count(),
+            ];
+
+            // Hourly activity chart (group by hour)
+            $hourlyData = [];
+            for ($hour = 0; $hour < 24; $hour++) {
+                $hourlyData[$hour] = [
+                    'hour' => str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00',
+                    'transactions' => 0,
+                    'sales' => 0,
+                ];
+            }
+
+            foreach ($transactions as $transaction) {
+                $hour = (int) $transaction->created_at->format('H');
+                $hourlyData[$hour]['transactions']++;
+                $hourlyData[$hour]['sales'] += $transaction->total;
+            }
+
+            // Recent transactions
+            $recentTransactions = $transactions->take(10)->map(function($transaction) {
+                return [
+                    'id' => $transaction->id,
+                    'transaction_code' => $transaction->transaction_code,
+                    'time' => $transaction->created_at->format('H:i:s'),
+                    'items_count' => $transaction->items->sum('quantity'),
+                    'total' => $transaction->total,
+                    'payment_method' => $transaction->payment_method,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'profile' => $profile,
+                'statistics' => $statistics,
+                'hourlyData' => array_values($hourlyData),
+                'recentTransactions' => $recentTransactions,
+                'date' => $date,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat data: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

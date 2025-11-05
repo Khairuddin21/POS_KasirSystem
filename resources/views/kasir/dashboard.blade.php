@@ -67,8 +67,8 @@
             </div>
 
             <!-- Products Grid with Real Images -->
-            <div class="products-container flex-1 p-6">
-                <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+            <div class="products-container flex-1 p-6 overflow-y-auto">
+                <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 auto-rows-max">
                     @foreach($products as $product)
                     <div class="product-card-modern group" 
                          data-category="{{ $product->category_id }}"
@@ -110,9 +110,9 @@
                             </button>
                         </div>
 
-                        <div class="product-info p-3">
-                            <h3 class="product-name font-bold text-gray-800 text-sm mb-1">{{ $product->name }}</h3>
-                            <div class="flex items-center justify-between">
+                        <div class="product-info p-4">
+                            <h3 class="product-name font-bold text-gray-800 text-sm mb-2 leading-tight">{{ $product->name }}</h3>
+                            <div class="flex items-center justify-between mt-auto">
                                 <p class="product-price text-blue-600 font-bold text-lg">
                                     Rp {{ number_format($product->price, 0, ',', '.') }}
                                 </p>
@@ -207,6 +207,7 @@
                                     <div>
                                         <p class="text-xs font-bold text-gray-800" id="memberName">-</p>
                                         <p class="text-xs text-gray-600" id="memberCode">-</p>
+                                        <p class="text-xs text-yellow-500 font-semibold" id="memberRating">★★★★★</p>
                                     </div>
                                 </div>
                                 <button onclick="clearMemberSelection()" class="text-red-500 hover:text-red-700">
@@ -403,12 +404,16 @@
     /* ========== PRODUCT CARDS ========== */
     .product-card-modern {
         background: white;
-        border-radius: 12px;
+        border-radius: 16px;
         overflow: hidden;
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         position: relative;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 300px;
     }
 
     .product-card-modern:hover {
@@ -437,16 +442,17 @@
     .product-image-wrapper {
         aspect-ratio: 1;
         position: relative;
-        background: transparent;
-        height: 160px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        height: 190px;
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
     }
 
     .product-image {
-        max-width: 90%;
-        max-height: 90%;
+        max-width: 85%;
+        max-height: 85%;
         width: auto;
         height: auto;
         object-fit: contain;
@@ -455,12 +461,12 @@
 
     .stock-badge {
         position: absolute;
-        top: 8px;
-        right: 8px;
+        top: 10px;
+        right: 10px;
         background: rgba(34, 197, 94, 0.95);
         color: white;
-        padding: 4px 10px;
-        border-radius: 12px;
+        padding: 5px 12px;
+        border-radius: 14px;
         font-size: 11px;
         font-weight: 700;
         backdrop-filter: blur(10px);
@@ -486,10 +492,10 @@
 
     .quick-add-btn {
         position: absolute;
-        bottom: 8px;
-        right: 8px;
-        width: 40px;
-        height: 40px;
+        bottom: 10px;
+        right: 10px;
+        width: 44px;
+        height: 44px;
         background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         color: white;
         border: none;
@@ -523,7 +529,11 @@
         background: white;
         position: relative;
         z-index: 2;
-        padding: 12px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        gap: 8px;
     }
 
     .product-name {
@@ -531,26 +541,29 @@
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        line-height: 1.3;
-        min-height: 2.6em;
+        line-height: 1.4;
+        min-height: 2.8em;
+        max-height: 2.8em;
         font-size: 14px;
         font-weight: 600;
-        margin-bottom: 6px;
+        margin-bottom: 0;
+        flex-shrink: 0;
     }
 
     .add-cart-btn {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
         background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         color: white;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         transition: all 0.3s ease;
         box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        flex-shrink: 0;
     }
 
     .add-cart-btn:hover {
@@ -1064,73 +1077,17 @@
         }
         
         #productsGrid {
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
         }
-    }
-
-    @media (max-width: 768px) {
-        .cart-sidebar {
-            width: 100%;
-            position: fixed;
-            right: -100%;
-            top: 0;
-            bottom: 0;
-            transition: right 0.3s ease;
-            z-index: 1000;
-        }
-
-        .cart-sidebar.open {
-            right: 0;
-        }
-
-        .search-input {
-            width: 200px;
-        }
-
-        #productsGrid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+        
+        .product-card-modern {
+            min-height: 280px;
         }
         
         .product-image-wrapper {
-            height: 140px;
+            height: 170px;
         }
-        
-        .product-name {
-            font-size: 13px;
-        }
-    }
-
-    @media (max-width: 640px) {
-        .search-input {
-            width: 150px;
-            font-size: 14px;
-            padding: 8px 8px 8px 36px;
-        }
-        
-        #productsGrid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-        
-        .product-image-wrapper {
-            height: 130px;
-        }
-        
-        .product-name {
-            font-size: 12px;
-        }
-
-        .search-input + svg {
-            width: 18px;
-            height: 18px;
-            left: 10px;
-        }
-    }
-
-    /* ========== MOBILE CART TOGGLE ========== */
-    .mobile-cart-toggle {
-        display: none;
     }
 
     @media (max-width: 768px) {
@@ -1154,7 +1111,40 @@
 
         #productsGrid {
             grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+        
+        .product-card-modern {
+            min-height: 260px;
+        }
+        
+        .product-image-wrapper {
+            height: 150px;
+        }
+        
+        .product-name {
+            font-size: 13px;
+        }
+        
+        .product-info {
+            padding: 12px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .search-input {
+            width: 150px;
+            font-size: 14px;
+            padding: 8px 8px 8px 36px;
+        }
+        
+        #productsGrid {
+            grid-template-columns: repeat(2, 1fr);
             gap: 12px;
+        }
+        
+        .product-card-modern {
+            min-height: 240px;
         }
         
         .product-image-wrapper {
@@ -1162,7 +1152,19 @@
         }
         
         .product-name {
-            font-size: 13px;
+            font-size: 12px;
+            min-height: 2.4em;
+            max-height: 2.4em;
+        }
+        
+        .product-info {
+            padding: 10px;
+        }
+
+        .search-input + svg {
+            width: 18px;
+            height: 18px;
+            left: 10px;
         }
     }
 
@@ -1371,6 +1373,9 @@
                     <span class="detail-value text-green-600 font-bold text-xl" id="modalChange">-</span>
                 </div>
             </div>
+
+            <!-- Member Info (if used) -->
+            <div id="modalMemberInfo" class="hidden mb-6"></div>
 
             <div class="flex space-x-3 no-print">
                 <button onclick="printReceipt()" class="flex-1 py-3 bg-white border-2 border-blue-600 text-blue-600 font-bold rounded-xl hover:bg-blue-50 transition-all duration-300">
@@ -1755,7 +1760,7 @@ async function searchMembers(query) {
         if (data.success && data.members.length > 0) {
             memberDropdown.innerHTML = data.members.map(member => `
                 <div class="member-item p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-0" 
-                     onclick="selectMember(${member.id}, '${member.name}', '${member.member_code}', ${member.points})">
+                     onclick="selectMember(${member.id}, '${member.name}', '${member.member_code}', ${member.points}, ${member.rating || 1}, '${member.rating_stars || '★☆☆☆☆'}')">
                     <div class="flex items-center gap-2">
                         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
                             ${member.name.charAt(0).toUpperCase()}
@@ -1763,7 +1768,10 @@ async function searchMembers(query) {
                         <div class="flex-1">
                             <p class="text-sm font-bold text-gray-800">${member.name}</p>
                             <p class="text-xs text-gray-600">${member.member_code} • ${member.phone}</p>
-                            <p class="text-xs text-blue-600 font-semibold">${member.points} poin</p>
+                            <div class="flex items-center gap-2">
+                                <p class="text-xs text-blue-600 font-semibold">${member.points} poin</p>
+                                <p class="text-xs text-yellow-500 font-semibold">${member.rating_stars || '★☆☆☆☆'}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1783,8 +1791,8 @@ async function searchMembers(query) {
     }
 }
 
-function selectMember(id, name, code, points) {
-    selectedMember = { id, name, code, points };
+function selectMember(id, name, code, points, rating, ratingStars) {
+    selectedMember = { id, name, code, points, rating, ratingStars };
     
     document.getElementById('selectedMemberId').value = id;
     document.getElementById('memberSearch').value = '';
@@ -1793,6 +1801,7 @@ function selectMember(id, name, code, points) {
     document.getElementById('memberInitial').textContent = name.charAt(0).toUpperCase();
     document.getElementById('memberName').textContent = name;
     document.getElementById('memberCode').textContent = code + ' • ' + points + ' poin';
+    document.getElementById('memberRating').textContent = ratingStars || '★☆☆☆☆';
     document.getElementById('selectedMemberDisplay').classList.remove('hidden');
     document.getElementById('memberSearch').parentElement.querySelector('input[type="text"]').classList.add('hidden');
     
@@ -1806,7 +1815,7 @@ function clearMemberSelection() {
     document.getElementById('memberSearch').parentElement.querySelector('input[type="text"]').classList.remove('hidden');
     document.getElementById('memberSearch').value = '';
     
-    showNotification('Member dibatalkan', 'info');
+    showNotification('ℹ️ Member dibatalkan', 'info');
 }
 
 // ========== CART FUNCTIONALITY ==========
@@ -2053,12 +2062,29 @@ function processTransaction() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showSuccessModal(data.transaction);
+            // Show notification if member was used
+            if (data.member_used && data.member_info) {
+                const memberInfo = data.member_info;
+                showNotification(
+                    `✅ Member ${memberInfo.name} berhasil digunakan! ` +
+                    `Poin: ${memberInfo.points} | Rating: ${memberInfo.rating_stars}`,
+                    'success'
+                );
+            }
+            
+            showSuccessModal(data.transaction, data.member_info);
             cart = [];
-            selectedMember = null;
-            clearMemberSelection();
             updateCart();
             document.getElementById('paidAmount').value = '';
+            
+            // Clear member selection after showing success modal
+            setTimeout(() => {
+                selectedMember = null;
+                document.getElementById('selectedMemberId').value = '';
+                document.getElementById('selectedMemberDisplay').classList.add('hidden');
+                document.getElementById('memberSearch').parentElement.querySelector('input[type="text"]').classList.remove('hidden');
+                document.getElementById('memberSearch').value = '';
+            }, 500);
         } else {
             showNotification('❌ ' + (data.message || 'Terjadi kesalahan'), 'error');
         }
@@ -2074,7 +2100,7 @@ function processTransaction() {
 }
 
 // ========== SUCCESS MODAL ==========
-function showSuccessModal(transaction) {
+function showSuccessModal(transaction, memberInfo = null) {
     const modal = document.getElementById('successModal');
     
     document.getElementById('modalTransCode').textContent = transaction.transaction_code;
@@ -2082,6 +2108,31 @@ function showSuccessModal(transaction) {
     document.getElementById('modalTotal').textContent = 'Rp ' + formatNumber(transaction.total);
     document.getElementById('modalPaid').textContent = 'Rp ' + formatNumber(transaction.paid);
     document.getElementById('modalChange').textContent = 'Rp ' + formatNumber(transaction.change);
+    
+    // Display member info if available
+    const modalMemberInfo = document.getElementById('modalMemberInfo');
+    if (memberInfo && modalMemberInfo) {
+        modalMemberInfo.innerHTML = `
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
+                        ${memberInfo.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-gray-800">Member: ${memberInfo.name}</p>
+                        <p class="text-xs text-gray-600">${memberInfo.code} • ${memberInfo.points} poin</p>
+                        <p class="text-xs text-yellow-500 font-semibold">${memberInfo.rating_stars}</p>
+                    </div>
+                </div>
+                <div class="mt-2 pt-2 border-t border-blue-200">
+                    <p class="text-xs text-gray-600">Total Belanja: <span class="font-semibold text-gray-800">Rp ${formatNumber(memberInfo.total_spent)}</span></p>
+                </div>
+            </div>
+        `;
+        modalMemberInfo.classList.remove('hidden');
+    } else if (modalMemberInfo) {
+        modalMemberInfo.classList.add('hidden');
+    }
     
     modal.classList.add('show');
     playSound('success');

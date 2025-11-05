@@ -50,7 +50,7 @@
 
                 <!-- Action Buttons -->
                 <div class="flex items-end gap-2">
-                    <button onclick="loadReport()" class="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-lg transition-all duration-300 shadow-md hover:shadow-lg">
+                    <button id="filterButton" type="button" onclick="loadReport()" class="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-lg transition-all duration-300 shadow-md hover:shadow-lg">
                         <span class="flex items-center justify-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -70,7 +70,7 @@
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
-                            Excel
+                            CSV Excel
                         </span>
                     </button>
                     <button onclick="exportPDF()" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all duration-300 shadow-md hover:shadow-lg" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;">
@@ -145,7 +145,7 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold text-gray-800">Detail Transaksi</h2>
                 <div class="text-sm text-gray-600">
-                    Menampilkan <span id="recordCount" class="font-semibold">0</span> data
+                    Menampilkan <span id="recordFrom" class="font-semibold">0</span> - <span id="recordTo" class="font-semibold">0</span> dari <span id="recordTotal" class="font-semibold">0</span> data
                 </div>
             </div>
             
@@ -168,6 +168,16 @@
                         <!-- Data will be loaded here -->
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination -->
+            <div id="paginationContainer" class="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-600">Halaman <span id="currentPageText" class="font-semibold">1</span> dari <span id="totalPagesText" class="font-semibold">1</span></span>
+                </div>
+                <div class="flex space-x-2" id="paginationButtons">
+                    <!-- Pagination buttons will be generated here -->
+                </div>
             </div>
 
             <!-- Empty State -->
@@ -352,16 +362,36 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// ========== PREVENT APP.JS CONFLICTS ==========
+// Stop event propagation if coming from Vite's app.js that expects landing page elements
+(function() {
+    'use strict';
+    
 // ========== GLOBAL VARIABLES ==========
 let salesChart = null;
 let currentData = [];
+let currentPage = 1;
+let totalPages = 1;
+let currentPagination = null;
+
+// ========== ROUTE URLS (server-generated to support subfolder deployments) ==========
+const URL_DATA = "{{ route('kasir.history.data') }}";
+const URL_HISTORY_BASE = "{{ route('kasir.history') }}"; // e.g., /kasir/history
+const URL_EXPORT_EXCEL = "{{ route('kasir.history.export.excel') }}";
+const URL_EXPORT_PDF = "{{ route('kasir.history.export.pdf') }}";
 
 // ========== INITIALIZE ==========
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('History Page: Initializing...');
     initializeDateFields();
     updateDateTime();
     setInterval(updateDateTime, 1000);
-    loadReport();
+    
+    // Small delay to ensure DOM is fully ready
+    setTimeout(() => {
+        console.log('History Page: Loading initial report...');
+        loadReport();
+    }, 100);
 });
 
 // ========== DATE & TIME ==========
@@ -388,33 +418,81 @@ function updateDateTime() {
 }
 
 // ========== LOAD REPORT ==========
-async function loadReport() {
-    const periodType = document.getElementById('periodType').value;
-    const dateFrom = document.getElementById('dateFrom').value;
-    const dateTo = document.getElementById('dateTo').value;
+async function loadReport(page = 1) {
+    console.log('loadReport called with page:', page);
+    
+    const periodType = document.getElementById('periodType');
+    const dateFrom = document.getElementById('dateFrom');
+    const dateTo = document.getElementById('dateTo');
+    
+    if (!periodType || !dateFrom || !dateTo) {
+        console.error('Required form elements not found!');
+        alert('Error: Form elements not loaded properly. Please refresh the page.');
+        return;
+    }
+    
+    const periodValue = periodType.value;
+    const dateFromValue = dateFrom.value;
+    const dateToValue = dateTo.value;
 
-    if (!dateFrom || !dateTo) {
+    if (!dateFromValue || !dateToValue) {
         alert('Mohon pilih tanggal terlebih dahulu');
         return;
     }
 
+    console.log('Filter params:', { period: periodValue, from: dateFromValue, to: dateToValue, page });
+    
     showLoading();
+    // Disable filter button during load to prevent double clicks
+    const btn = document.getElementById('filterButton');
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-70', 'cursor-not-allowed');
+    }
 
     try {
-        const response = await fetch(`/kasir/history/data?period=${periodType}&from=${dateFrom}&to=${dateTo}`);
+        const params = new URLSearchParams({
+            period: periodValue,
+            from: dateFromValue,
+            to: dateToValue,
+            page: String(page)
+        });
+        const url = `${URL_DATA}?${params.toString()}`;
+        console.log('Fetching:', url);
+        
+        const response = await fetch(url);
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`Request failed: ${response.status}`);
+        }
         const data = await response.json();
+        console.log('Data received:', data);
 
         if (data.success) {
             currentData = data.data;
+            currentPage = data.pagination.current_page;
+            totalPages = data.pagination.last_page;
+            currentPagination = data.pagination;
+            
             updateStatistics(data.statistics);
             updateChart(data.chartData);
-            updateTable(data.data);
+            updateTable(data.data, data.pagination);
+            updatePagination(data.pagination);
+            console.log('Report loaded successfully!');
         } else {
+            console.warn('API returned success=false');
             showEmpty();
         }
     } catch (error) {
         console.error('Error loading report:', error);
+        alert('Gagal memuat laporan: ' + error.message + '\n\nSilakan periksa koneksi atau coba lagi.');
         showEmpty();
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('opacity-70', 'cursor-not-allowed');
+        }
     }
 }
 
@@ -499,7 +577,7 @@ function updateChart(chartData) {
 }
 
 // ========== UPDATE TABLE ==========
-function updateTable(data) {
+function updateTable(data, pagination) {
     const tbody = document.getElementById('transactionsBody');
     tbody.innerHTML = '';
 
@@ -508,13 +586,17 @@ function updateTable(data) {
         return;
     }
 
-    document.getElementById('recordCount').textContent = data.length;
+    // Update pagination info
+    document.getElementById('recordFrom').textContent = pagination.from || 0;
+    document.getElementById('recordTo').textContent = pagination.to || 0;
+    document.getElementById('recordTotal').textContent = pagination.total || 0;
 
     data.forEach((transaction, index) => {
+        const actualIndex = (pagination.current_page - 1) * pagination.per_page + index + 1;
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-50 transition-colors';
         row.innerHTML = `
-            <td class="px-4 py-3 text-sm text-gray-900">${index + 1}</td>
+            <td class="px-4 py-3 text-sm text-gray-900">${actualIndex}</td>
             <td class="px-4 py-3 text-sm font-semibold text-blue-600">${transaction.transaction_code}</td>
             <td class="px-4 py-3 text-sm text-gray-900">${formatDate(transaction.created_at)}</td>
             <td class="px-4 py-3 text-sm text-gray-900">${transaction.cashier_name}</td>
@@ -542,13 +624,106 @@ function updateTable(data) {
     hideLoading();
 }
 
+// ========== UPDATE PAGINATION ==========
+function updatePagination(pagination) {
+    const paginationContainer = document.getElementById('paginationContainer');
+    const paginationButtons = document.getElementById('paginationButtons');
+    
+    if (pagination.last_page <= 1) {
+        paginationContainer.classList.add('hidden');
+        return;
+    }
+    
+    paginationContainer.classList.remove('hidden');
+    
+    // Update page text
+    document.getElementById('currentPageText').textContent = pagination.current_page;
+    document.getElementById('totalPagesText').textContent = pagination.last_page;
+    
+    // Generate pagination buttons
+    paginationButtons.innerHTML = '';
+    
+    // Previous button
+    const prevBtn = document.createElement('button');
+    prevBtn.innerHTML = `
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+    `;
+    prevBtn.className = `px-3 py-2 rounded-lg transition-all ${pagination.current_page === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'}`;
+    prevBtn.disabled = pagination.current_page === 1;
+    prevBtn.onclick = () => !prevBtn.disabled && loadReport(pagination.current_page - 1);
+    paginationButtons.appendChild(prevBtn);
+    
+    // Page numbers
+    const maxButtons = 5;
+    let startPage = Math.max(1, pagination.current_page - Math.floor(maxButtons / 2));
+    let endPage = Math.min(pagination.last_page, startPage + maxButtons - 1);
+    
+    if (endPage - startPage < maxButtons - 1) {
+        startPage = Math.max(1, endPage - maxButtons + 1);
+    }
+    
+    // First page
+    if (startPage > 1) {
+        const firstBtn = createPageButton(1, pagination.current_page);
+        paginationButtons.appendChild(firstBtn);
+        
+        if (startPage > 2) {
+            const dots = document.createElement('span');
+            dots.className = 'px-3 py-2 text-gray-500';
+            dots.textContent = '...';
+            paginationButtons.appendChild(dots);
+        }
+    }
+    
+    // Page buttons
+    for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = createPageButton(i, pagination.current_page);
+        paginationButtons.appendChild(pageBtn);
+    }
+    
+    // Last page
+    if (endPage < pagination.last_page) {
+        if (endPage < pagination.last_page - 1) {
+            const dots = document.createElement('span');
+            dots.className = 'px-3 py-2 text-gray-500';
+            dots.textContent = '...';
+            paginationButtons.appendChild(dots);
+        }
+        
+        const lastBtn = createPageButton(pagination.last_page, pagination.current_page);
+        paginationButtons.appendChild(lastBtn);
+    }
+    
+    // Next button
+    const nextBtn = document.createElement('button');
+    nextBtn.innerHTML = `
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+    `;
+    nextBtn.className = `px-3 py-2 rounded-lg transition-all ${pagination.current_page === pagination.last_page ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'}`;
+    nextBtn.disabled = pagination.current_page === pagination.last_page;
+    nextBtn.onclick = () => !nextBtn.disabled && loadReport(pagination.current_page + 1);
+    paginationButtons.appendChild(nextBtn);
+}
+
+function createPageButton(pageNumber, currentPage) {
+    const btn = document.createElement('button');
+    btn.textContent = pageNumber;
+    btn.className = `px-4 py-2 rounded-lg transition-all font-semibold ${pageNumber === currentPage ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`;
+    btn.onclick = () => loadReport(pageNumber);
+    return btn;
+}
+
 // ========== VIEW DETAIL ==========
 async function viewDetail(transactionId) {
     const modal = document.getElementById('detailModal');
     const modalContent = document.getElementById('modalContent');
 
     try {
-        const response = await fetch(`/kasir/history/${transactionId}`);
+        const response = await fetch(`${URL_HISTORY_BASE}/${transactionId}`);
         const data = await response.json();
 
         if (data.success) {
@@ -642,16 +817,16 @@ async function exportExcel() {
     const periodType = document.getElementById('periodType').value;
     const dateFrom = document.getElementById('dateFrom').value;
     const dateTo = document.getElementById('dateTo').value;
-
-    window.location.href = `/kasir/history/export/excel?period=${periodType}&from=${dateFrom}&to=${dateTo}`;
+    const params = new URLSearchParams({ period: periodType, from: dateFrom, to: dateTo });
+    window.location.href = `${URL_EXPORT_EXCEL}?${params.toString()}`;
 }
 
 async function exportPDF() {
     const periodType = document.getElementById('periodType').value;
     const dateFrom = document.getElementById('dateFrom').value;
     const dateTo = document.getElementById('dateTo').value;
-
-    window.location.href = `/kasir/history/export/pdf?period=${periodType}&from=${dateFrom}&to=${dateTo}`;
+    const params = new URLSearchParams({ period: periodType, from: dateFrom, to: dateTo });
+    window.location.href = `${URL_EXPORT_PDF}?${params.toString()}`;
 }
 
 // ========== UTILITY FUNCTIONS ==========
@@ -704,8 +879,14 @@ function showEmpty() {
     document.getElementById('emptyState').classList.remove('hidden');
     document.getElementById('loadingState').classList.add('hidden');
     document.getElementById('transactionsBody').innerHTML = '';
-    document.getElementById('recordCount').textContent = '0';
+    document.getElementById('recordFrom').textContent = '0';
+    document.getElementById('recordTo').textContent = '0';
+    document.getElementById('recordTotal').textContent = '0';
+    document.getElementById('paginationContainer').classList.add('hidden');
 }
+
+// ========== END IIFE ==========
+})(); // Close the isolation wrapper
 </script>
 @endpush
 @endsection

@@ -87,7 +87,7 @@ class MemberController extends Controller
                   ->orWhere('phone', 'like', "%{$query}%");
             })
             ->limit(10)
-            ->get(['id', 'member_code', 'name', 'phone', 'points']);
+            ->get(['id', 'member_code', 'name', 'phone', 'points', 'rating', 'total_spent']);
         
         return response()->json([
             'success' => true,
