@@ -79,11 +79,15 @@
                          data-stock="{{ $product->stock }}">
                         
                         <div class="product-image-wrapper relative overflow-hidden bg-transparent rounded-2xl">
-                            @if($product->image && file_exists(public_path('images/barang kasir/' . $product->image)))
-                            <img src="{{ asset('images/barang kasir/' . $product->image) }}" 
+                            @if($product->image)
+                            <img src="{{ asset($product->image) }}" 
                                  alt="{{ $product->name }}"
                                  class="product-image object-contain transform group-hover:scale-110 transition-transform duration-500"
-                                 loading="lazy">
+                                 loading="lazy"
+                                 onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="product-placeholder w-full h-full flex items-center justify-center bg-gray-100" style="display:none;">
+                                <span class="text-6xl">{{ $product->category->icon ?? '📦' }}</span>
+                            </div>
                             @else
                             <div class="product-placeholder w-full h-full flex items-center justify-center bg-gray-100">
                                 <span class="text-6xl">{{ $product->category->icon ?? '📦' }}</span>
@@ -437,6 +441,15 @@
 
     .product-card-modern:hover::before {
         opacity: 1;
+    }
+
+    .product-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
     }
 
     .product-image-wrapper {

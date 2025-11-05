@@ -6,6 +6,7 @@ use App\Http\Controllers\Kasir\KasirController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\ProductController;
 
 // Landing Page
 Route::get('/', function () {
@@ -48,9 +49,13 @@ Route::prefix('admin')->group(function () {
         Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
         Route::post('/users/{id}/reset-password', [UserController::class, 'resetPassword'])->name('admin.users.reset-password');
         
-        Route::get('/products', function () {
-            return view('admin.products');
-        })->name('admin.products');
+        // Product Management Routes
+        Route::get('/products', [ProductController::class, 'index'])->name('admin.products');
+        Route::post('/products', [ProductController::class, 'store'])->name('admin.products.store');
+        Route::get('/products/{id}', [ProductController::class, 'show'])->name('admin.products.show');
+        Route::put('/products/{id}', [ProductController::class, 'update'])->name('admin.products.update');
+        Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('admin.products.destroy');
+        Route::post('/products/{id}/toggle-status', [ProductController::class, 'toggleStatus'])->name('admin.products.toggle');
         
         Route::get('/transactions', function () {
             return view('admin.transactions');
