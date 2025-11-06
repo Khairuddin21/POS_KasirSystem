@@ -21,12 +21,16 @@
 <body class="font-sans antialiased bg-gray-50">
     <div class="min-h-screen flex">
         <!-- Sidebar -->
-        @include('components.admin.sidebar')
+        <div class="no-print">
+            @include('components.admin.sidebar')
+        </div>
         
         <!-- Main Content -->
         <div class="flex-1 flex flex-col">
             <!-- Header -->
-            @include('components.admin.header')
+            <div class="no-print">
+                @include('components.admin.header')
+            </div>
             
             <!-- Page Content -->
             <main class="flex-1 p-6 overflow-auto">

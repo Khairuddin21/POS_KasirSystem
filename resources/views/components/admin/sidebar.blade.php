@@ -1,11 +1,11 @@
 <!-- Admin Sidebar -->
-<aside class="w-64 bg-gray-900 text-white min-h-screen flex flex-col">
+<aside class="w-64 bg-gray-900 text-white flex flex-col sticky top-0 h-screen">
     <div class="p-6">
         <h2 class="text-2xl font-bold mb-2"><span class="text-cyan-500">POS</span>Kasir</h2>
         <p class="text-gray-400 text-sm">Admin Panel</p>
     </div>
     
-    <nav class="mt-6 flex-1">
+    <nav class="mt-6 flex-1 overflow-y-auto">
         <a href="/admin/dashboard" class="flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-cyan-500 transition-colors {{ request()->is('admin/dashboard') ? 'bg-gray-800 text-cyan-500 border-l-4 border-cyan-500' : '' }}">
             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
@@ -32,13 +32,6 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
             </svg>
             Transactions
-        </a>
-        
-        <a href="/admin/reports" class="flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-cyan-500 transition-colors {{ request()->is('admin/reports*') ? 'bg-gray-800 text-cyan-500 border-l-4 border-cyan-500' : '' }}">
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-            </svg>
-            Reports
         </a>
         
         <a href="/admin/settings" class="flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-cyan-500 transition-colors {{ request()->is('admin/settings*') ? 'bg-gray-800 text-cyan-500 border-l-4 border-cyan-500' : '' }}">

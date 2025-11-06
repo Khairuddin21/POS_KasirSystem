@@ -42,8 +42,28 @@
                 <p class="text-gray-600">Daftar dan mulai gunakan POS Kasir sekarang</p>
             </div>
             
+            <!-- Success Message -->
+            @if(session('success'))
+                <div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    {{ session('success') }}
+                </div>
+            @endif
+            
+            <!-- Error Message -->
+            @if($errors->has('error'))
+                <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    {{ $errors->first('error') }}
+                </div>
+            @endif
+            
             <!-- Register Form -->
-            <form method="POST" action="{{ route('register') }}" class="space-y-5">
+            <form method="POST" action="{{ route('register.post') }}" class="space-y-5" id="registerForm">
                 @csrf
                 
                 <!-- Name -->
@@ -55,12 +75,17 @@
                         name="name" 
                         required 
                         autofocus
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
+                        class="w-full px-4 py-3 border @error('name') border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
                         placeholder="Masukkan nama lengkap"
                         value="{{ old('name') }}"
                     >
                     @error('name')
-                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-2 text-sm text-red-600 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            {{ $message }}
+                        </p>
                     @enderror
                 </div>
                 
@@ -72,12 +97,17 @@
                         id="email" 
                         name="email" 
                         required
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
+                        class="w-full px-4 py-3 border @error('email') border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
                         placeholder="nama@email.com"
                         value="{{ old('email') }}"
                     >
                     @error('email')
-                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-2 text-sm text-red-600 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            {{ $message }}
+                        </p>
                     @enderror
                 </div>
                 
@@ -90,7 +120,7 @@
                             id="password" 
                             name="password" 
                             required
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
+                            class="w-full px-4 py-3 border @error('password') border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
                             placeholder="Minimal 8 karakter"
                         >
                         <button 
@@ -104,8 +134,22 @@
                             </svg>
                         </button>
                     </div>
+                    <!-- Password Strength Indicator -->
+                    <div id="passwordStrength" class="hidden mt-2">
+                        <div class="flex items-center space-x-2">
+                            <div class="flex-1 bg-gray-200 rounded-full h-1.5">
+                                <div id="strengthBar" class="h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <span id="strengthText" class="text-xs font-medium"></span>
+                        </div>
+                    </div>
                     @error('password')
-                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-2 text-sm text-red-600 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            {{ $message }}
+                        </p>
                     @enderror
                 </div>
                 
@@ -132,6 +176,7 @@
                             </svg>
                         </button>
                     </div>
+                    <p id="passwordMatch" class="hidden mt-2 text-sm"></p>
                 </div>
                 
                 <!-- Terms & Conditions -->
@@ -275,42 +320,103 @@
     }
     
     // Password Strength Indicator
-    document.getElementById('password').addEventListener('input', function() {
+    const passwordInput = document.getElementById('password');
+    const strengthContainer = document.getElementById('passwordStrength');
+    const strengthBar = document.getElementById('strengthBar');
+    const strengthText = document.getElementById('strengthText');
+    
+    passwordInput.addEventListener('input', function() {
         const password = this.value;
-        let strength = 0;
         
+        if (password.length === 0) {
+            strengthContainer.classList.add('hidden');
+            return;
+        }
+        
+        strengthContainer.classList.remove('hidden');
+        
+        let strength = 0;
+        let color = '';
+        let text = '';
+        
+        // Length check
         if (password.length >= 8) strength++;
+        if (password.length >= 12) strength++;
+        
+        // Character variety checks
         if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
         if (password.match(/\d/)) strength++;
         if (password.match(/[^a-zA-Z\d]/)) strength++;
         
-        // You can add visual indicator here
-        console.log('Password strength:', strength);
+        // Set color and text based on strength
+        if (strength <= 1) {
+            color = '#ef4444'; // red
+            text = 'Lemah';
+        } else if (strength === 2 || strength === 3) {
+            color = '#f59e0b'; // orange
+            text = 'Sedang';
+        } else {
+            color = '#22c55e'; // green
+            text = 'Kuat';
+        }
+        
+        strengthBar.style.width = (strength * 20) + '%';
+        strengthBar.style.backgroundColor = color;
+        strengthText.textContent = text;
+        strengthText.style.color = color;
     });
     
     // Confirm password validation
-    document.getElementById('password_confirmation').addEventListener('input', function() {
-        const password = document.getElementById('password').value;
+    const passwordConfirmation = document.getElementById('password_confirmation');
+    const passwordMatch = document.getElementById('passwordMatch');
+    
+    passwordConfirmation.addEventListener('input', function() {
+        const password = passwordInput.value;
         const confirmation = this.value;
         
-        if (password !== confirmation && confirmation.length > 0) {
-            this.setCustomValidity('Password tidak cocok');
-        } else {
+        if (confirmation.length === 0) {
+            passwordMatch.classList.add('hidden');
             this.setCustomValidity('');
+            return;
+        }
+        
+        passwordMatch.classList.remove('hidden');
+        
+        if (password === confirmation) {
+            passwordMatch.textContent = '✓ Password cocok';
+            passwordMatch.className = 'mt-2 text-sm text-green-600 flex items-center';
+            this.setCustomValidity('');
+        } else {
+            passwordMatch.textContent = '✗ Password tidak cocok';
+            passwordMatch.className = 'mt-2 text-sm text-red-600 flex items-center';
+            this.setCustomValidity('Password tidak cocok');
         }
     });
     
     // Form validation
-    document.querySelector('form').addEventListener('submit', function(e) {
+    const registerForm = document.getElementById('registerForm');
+    registerForm.addEventListener('submit', function(e) {
         const terms = document.getElementById('terms');
         if (!terms.checked) {
             e.preventDefault();
-            alert('Mohon setujui Syarat & Ketentuan');
+            alert('⚠️ Mohon setujui Syarat & Ketentuan untuk melanjutkan');
+            terms.focus();
             return false;
         }
+        
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+            <svg class="animate-spin h-5 w-5 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        `;
     });
     
-    console.log('Register Page Loaded! 📝');
+    console.log('✅ Register Page Loaded! 📝');
 </script>
 @endpush
 @endsection

@@ -7,6 +7,9 @@ use App\Http\Controllers\MemberController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
+use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\User\UserController as UserDashboardController;
 
 // Landing Page
 Route::get('/', function () {
@@ -17,14 +20,8 @@ Route::get('/', function () {
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
-Route::get('/register', function () {
-    return view('auth.register');
-})->name('register');
-
-Route::post('/register', function () {
-    // Registration logic here
-    return redirect()->route('login')->with('success', 'Registration successful! Please login.');
-});
+Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
+Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
 Route::get('/password/reset', function () {
     return view('auth.forgot-password');
@@ -57,17 +54,16 @@ Route::prefix('admin')->group(function () {
         Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('admin.products.destroy');
         Route::post('/products/{id}/toggle-status', [ProductController::class, 'toggleStatus'])->name('admin.products.toggle');
         
-        Route::get('/transactions', function () {
-            return view('admin.transactions');
-        })->name('admin.transactions');
+        // Transaction Management Routes
+        Route::get('/transactions', [AdminTransactionController::class, 'index'])->name('admin.transactions');
+        Route::get('/transactions/{id}', [AdminTransactionController::class, 'show'])->name('admin.transactions.show');
+        Route::get('/transactions/export/pdf', [AdminTransactionController::class, 'exportPDF'])->name('admin.transactions.export.pdf');
+        Route::get('/transactions/export/excel', [AdminTransactionController::class, 'exportExcel'])->name('admin.transactions.export.excel');
         
-        Route::get('/reports', function () {
-            return view('admin.reports');
-        })->name('admin.reports');
-        
-        Route::get('/settings', function () {
-            return view('admin.settings');
-        })->name('admin.settings');
+        // Settings Routes
+        Route::get('/settings', [SettingsController::class, 'index'])->name('admin.settings');
+        Route::post('/settings/profile', [SettingsController::class, 'updateProfile'])->name('admin.settings.update.profile');
+        Route::post('/settings/password', [SettingsController::class, 'updatePassword'])->name('admin.settings.update.password');
     });
 });
 
@@ -108,13 +104,10 @@ Route::prefix('kasir')->middleware(['auth'])->group(function () {
 
 // User Routes
 Route::prefix('user')->middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('user.dashboard');
-    })->name('user.dashboard');
+    Route::get('/dashboard', [UserDashboardController::class, 'dashboard'])->name('user.dashboard');
     
-    Route::get('/transactions', function () {
-        return view('user.transactions');
-    })->name('user.transactions');
+    Route::get('/transactions', [UserDashboardController::class, 'transactions'])->name('user.transactions');
+    Route::get('/transactions/{id}', [UserDashboardController::class, 'transactionDetail'])->name('user.transactions.detail');
     
     Route::get('/profile', function () {
         return view('user.profile');

@@ -79,9 +79,18 @@ class ProductController extends Controller
         }
         
         try {
-            $data = $request->all();
+            // Only get validated data to avoid unwanted fields
+            $data = $request->only([
+                'category_id',
+                'name',
+                'description',
+                'price',
+                'stock',
+                'sku'
+            ]);
+            
             $data['slug'] = Str::slug($request->name . '-' . Str::random(5));
-            $data['is_active'] = $request->has('is_active') ? true : false;
+            $data['is_active'] = $request->input('is_active', 0) == 1 ? true : false;
             
             // Handle image upload
             if ($request->hasFile('image')) {
@@ -149,9 +158,18 @@ class ProductController extends Controller
                 ], 422);
             }
             
-            $data = $request->all();
+            // Only get validated data to avoid _method and other unwanted fields
+            $data = $request->only([
+                'category_id',
+                'name',
+                'description',
+                'price',
+                'stock',
+                'sku'
+            ]);
+            
             $data['slug'] = Str::slug($request->name . '-' . Str::random(5));
-            $data['is_active'] = $request->has('is_active') ? true : false;
+            $data['is_active'] = $request->input('is_active', 0) == 1 ? true : false;
             
             // Handle image upload
             if ($request->hasFile('image')) {

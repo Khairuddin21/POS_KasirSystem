@@ -225,36 +225,38 @@
                 </div>
 
                 <label class="text-xs font-bold text-gray-700 block mb-2">Metode Pembayaran</label>
-                <div class="payment-methods grid grid-cols-4 gap-1 mb-3">
-                    <button class="payment-method-btn active" data-method="cash" title="Tunai">
-                        <span class="text-lg">💵</span>
+                <div class="payment-methods grid grid-cols-2 gap-3 mb-3">
+                    <button class="payment-method-btn-large active" data-method="cash" onclick="selectPaymentMethod('cash')">
+                        <span class="text-3xl mb-2">💵</span>
+                        <span class="text-sm font-bold text-gray-700">TUNAI</span>
+                        <span class="text-xs text-gray-500">Pembayaran Langsung</span>
                     </button>
-                    <button class="payment-method-btn" data-method="card" title="Kartu">
-                        <span class="text-lg">💳</span>
-                    </button>
-                    <button class="payment-method-btn" data-method="qris" title="QRIS">
-                        <span class="text-lg">📱</span>
-                    </button>
-                    <button class="payment-method-btn" data-method="transfer" title="Transfer">
-                        <span class="text-lg">🏦</span>
+                    <button class="payment-method-btn-large" data-method="qris" onclick="selectPaymentMethod('qris')">
+                        <span class="text-3xl mb-2">📱</span>
+                        <span class="text-sm font-bold text-gray-700">QRIS</span>
+                        <span class="text-xs text-gray-500">Scan QR Code</span>
                     </button>
                 </div>
 
-                <label class="text-xs font-bold text-gray-700 block mb-1">Uang Dibayar</label>
-                <div class="relative mb-2">
-                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm font-semibold">Rp</span>
-                    <input 
-                        type="text" 
-                        id="paidAmount" 
-                        placeholder="0" 
-                        class="payment-input w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right text-lg font-bold text-gray-800"
-                    >
-                </div>
-                
-                <div class="change-display p-2 bg-green-50 border border-green-200 rounded-lg">
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs font-medium text-gray-600">Kembalian</span>
-                        <span class="text-lg font-bold text-green-600" id="change">Rp 0</span>
+                <!-- Cash Input Section (Hidden for QRIS) -->
+                <div id="cashInputSection">
+                    <label class="text-xs font-bold text-gray-700 block mb-1">Uang Dibayar</label>
+                    <div class="relative mb-2">
+                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm font-semibold">Rp</span>
+                        <input 
+                            type="text" 
+                            id="paidAmount" 
+                            placeholder="0" 
+                            class="payment-input w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right text-lg font-bold text-gray-800"
+                            oninput="calculateChange()"
+                        >
+                    </div>
+                    
+                    <div class="change-display p-2 bg-green-50 border border-green-200 rounded-lg mb-3" id="changeDisplay">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-medium text-gray-600">Kembalian</span>
+                            <span class="text-lg font-bold text-green-600" id="change">Rp 0</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -676,6 +678,15 @@
         background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
         padding: 8px;
         flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .cart-item-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
     }
 
     .cart-item-info {
@@ -797,6 +808,68 @@
         /* Keep emoji in original colors (no inversion) */
         filter: none;
         transform: scale(1.1);
+    }
+
+    /* Payment Method Large Buttons */
+    .payment-method-btn-large {
+        padding: 20px;
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 120px;
+    }
+
+    .payment-method-btn-large:hover {
+        border-color: #3b82f6;
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+
+    .payment-method-btn-large.active {
+        border-color: #3b82f6;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+    }
+
+    .payment-method-btn-large.active * {
+        color: white !important;
+    }
+
+    .payment-method-btn-large.active span[class*="text-gray"] {
+        color: white !important;
+    }
+
+    /* Detail Row for Modals */
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        font-size: 14px;
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    .detail-value {
+        font-size: 15px;
+        color: #111827;
+        font-weight: 600;
     }
 
     .payment-input {
@@ -1072,6 +1145,27 @@
         opacity: 1;
         visibility: visible;
         pointer-events: auto;
+    }
+
+    .notification-toast.success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+    }
+
+    .notification-toast.error {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+    }
+
+    .notification-toast.info {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+    }
+
+    .notification-toast.warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+        color: white;
     }
 
     /* ========== TIME DISPLAY ========== */
@@ -1407,6 +1501,86 @@
     </div>
 </div>
 
+<!-- QRIS Payment Modal -->
+<div id="qrisModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-content max-w-lg">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-2xl -m-6 mb-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-2xl font-bold flex items-center">
+                        <span class="text-3xl mr-3">📱</span>
+                        Pembayaran QRIS
+                    </h3>
+                    <button onclick="closeQrisModal()" class="text-white hover:text-gray-200 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- QR Code Section -->
+            <div class="text-center mb-6">
+                <div class="bg-white border-4 border-blue-500 rounded-2xl p-4 inline-block shadow-lg">
+                    <img src="/images/payment/qris.jpg" alt="QR Code QRIS" class="w-64 h-64 object-contain mx-auto">
+                </div>
+                <p class="text-gray-600 mt-4 text-sm">Scan QR Code di atas dengan aplikasi e-wallet Anda</p>
+            </div>
+
+            <!-- Payment Details -->
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 mb-6">
+                <div class="detail-row">
+                    <span class="detail-label">Total Belanja</span>
+                    <span class="detail-value text-blue-600 font-bold text-2xl" id="qrisTotal">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Kode Transaksi</span>
+                    <span class="detail-value" id="qrisTransCode">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Tanggal</span>
+                    <span class="detail-value" id="qrisDate">-</span>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded">
+                <div class="flex items-start">
+                    <svg class="w-5 h-5 text-yellow-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="text-sm text-yellow-800">
+                        <p class="font-semibold mb-1">Cara Pembayaran:</p>
+                        <ol class="list-decimal list-inside space-y-1">
+                            <li>Buka aplikasi e-wallet (GoPay, OVO, Dana, dll)</li>
+                            <li>Pilih menu Scan QR</li>
+                            <li>Scan QR Code di atas</li>
+                            <li>Konfirmasi pembayaran</li>
+                            <li>Klik tombol "Konfirmasi Pembayaran" di bawah</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex space-x-3">
+                <button onclick="closeQrisModal()" class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl transition-all duration-300">
+                    Batal
+                </button>
+                <button onclick="confirmQrisPayment()" class="flex-1 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg">
+                    <span class="flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Konfirmasi Pembayaran
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Notification Toast -->
 <div id="notificationToast" class="notification-toast"></div>
 
@@ -1521,6 +1695,12 @@ document.addEventListener('DOMContentLoaded', function() {
     initializePaymentMethods();
     initializeMemberSearch();
     updateCart();
+    
+    // Set default payment method to Cash (active)
+    const cashBtn = document.querySelector('[onclick*="selectPaymentMethod(\'cash\')"]');
+    if (cashBtn) {
+        cashBtn.classList.add('active');
+    }
     
     showNotification('🎉 POS System siap digunakan!', 'success');
     console.log('🛒 Conventional Shop POS System Ready!');
@@ -1903,10 +2083,14 @@ function updateCart() {
     } else {
         cartItemsDiv.innerHTML = cart.map((item, index) => `
             <div class="cart-item" style="animation-delay: ${index * 0.05}s">
-                ${item.image ? 
-                    `<img src="/images/barang kasir/${item.image}" alt="${item.name}" class="cart-item-image">` :
-                    `<div class="cart-item-image text-3xl">${item.icon}</div>`
-                }
+                <div class="cart-item-image">
+                    ${item.image ? 
+                        `<img src="/${item.image}" 
+                              alt="${item.name}" 
+                              onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\\'text-3xl\\'>${item.icon || '📦'}</span>';">` :
+                        `<span class="text-3xl">${item.icon || '📦'}</span>`
+                    }
+                </div>
                 <div class="cart-item-info">
                     <div class="cart-item-name">${item.name}</div>
                     <div class="cart-item-price">Rp ${formatNumber(item.price)}</div>
@@ -2035,10 +2219,22 @@ function processTransaction() {
         return;
     }
     
+    // Check if QRIS is selected - show QR modal first
+    if (selectedPaymentMethod === 'qris') {
+        // Check if this is called from QRIS confirmation
+        if (!arguments[0]) {
+            showQrisModal();
+            return;
+        }
+        // If called from confirmation, set paid = total (no change for QRIS)
+        document.getElementById('paidAmount').value = total;
+    }
+    
     const paidValue = document.getElementById('paidAmount').value.replace(/\D/g, '');
     const paid = parseInt(paidValue) || 0;
     
-    if (paid < total) {
+    // For cash, check if payment is sufficient
+    if (selectedPaymentMethod === 'cash' && paid < total) {
         showNotification('❌ Pembayaran tidak mencukupi!', 'error');
         return;
     }
@@ -2054,12 +2250,12 @@ function processTransaction() {
             product_id: item.id,
             quantity: item.quantity
         })),
-        payment_method: currentPaymentMethod,
+        payment_method: selectedPaymentMethod,
         paid: paid,
         subtotal: subtotal,
         tax: tax,
         total: total,
-        change: paid - total,
+        change: selectedPaymentMethod === 'qris' ? 0 : (paid - total),
         member_id: selectedMember ? selectedMember.id : null
     };
     
@@ -2154,6 +2350,78 @@ function showSuccessModal(transaction, memberInfo = null) {
 function closeSuccessModal() {
     const modal = document.getElementById('successModal');
     modal.classList.remove('show');
+}
+
+// ========== PAYMENT METHOD SELECTION ==========
+let selectedPaymentMethod = 'cash'; // Default
+
+function selectPaymentMethod(method) {
+    selectedPaymentMethod = method;
+    
+    // Update UI - remove active from all buttons
+    document.querySelectorAll('.payment-method-btn-large').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Add active to selected button (find by data-method)
+    const selectedBtn = document.querySelector(`[data-method="${method}"]`);
+    if (selectedBtn) {
+        selectedBtn.classList.add('active');
+    }
+    
+    // Get elements
+    const cashInputSection = document.getElementById('cashInputSection');
+    const processBtn = document.getElementById('processBtn');
+    
+    if (method === 'qris') {
+        // Hide cash input section for QRIS
+        cashInputSection.style.display = 'none';
+        
+        // Auto-set paid amount to total for QRIS
+        document.getElementById('paidAmount').value = total;
+        
+        // Enable process button for QRIS (no need to input cash)
+        if (cart.length > 0) {
+            processBtn.disabled = false;
+            processBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        
+        showNotification('💳 Pilih QRIS - Langsung klik Bayar untuk scan QR Code', 'info');
+    } else {
+        // Show cash input section for cash payment
+        cashInputSection.style.display = 'block';
+        
+        // Clear paid amount
+        document.getElementById('paidAmount').value = '';
+        
+        // Recalculate change and button state
+        calculateChange();
+    }
+}
+
+// ========== QRIS MODAL ==========
+function showQrisModal() {
+    const transCode = 'TRX-' + Date.now();
+    const date = new Date().toLocaleString('id-ID');
+    
+    document.getElementById('qrisTotal').textContent = 'Rp ' + formatNumber(total);
+    document.getElementById('qrisTransCode').textContent = transCode;
+    document.getElementById('qrisDate').textContent = date;
+    
+    const modal = document.getElementById('qrisModal');
+    modal.classList.add('show');
+    playSound('click');
+}
+
+function closeQrisModal() {
+    const modal = document.getElementById('qrisModal');
+    modal.classList.remove('show');
+}
+
+function confirmQrisPayment() {
+    closeQrisModal();
+    // Pass true flag to indicate this is from QRIS confirmation
+    processTransaction(true);
 }
 
 function printReceipt() {

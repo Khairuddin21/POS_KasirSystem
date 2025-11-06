@@ -471,6 +471,13 @@ document.getElementById('productForm').addEventListener('submit', async function
         const method = document.getElementById('formMethod').value;
         const productId = document.getElementById('productId').value;
         
+        // Handle is_active checkbox properly
+        if (!formData.has('is_active')) {
+            formData.append('is_active', '0');
+        } else {
+            formData.set('is_active', '1');
+        }
+        
         // For PUT request, we need to send as POST with _method
         if (method === 'PUT') {
             formData.append('_method', 'PUT');
@@ -482,7 +489,8 @@ document.getElementById('productForm').addEventListener('submit', async function
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
             }
         });
         
@@ -495,7 +503,16 @@ document.getElementById('productForm').addEventListener('submit', async function
                 window.location.reload();
             }, 1500);
         } else {
-            showNotification('error', data.message);
+            // Show detailed validation errors if available
+            if (data.errors) {
+                let errorMsg = 'Validasi gagal:\n';
+                Object.keys(data.errors).forEach(key => {
+                    errorMsg += `- ${data.errors[key][0]}\n`;
+                });
+                showNotification('error', errorMsg);
+            } else {
+                showNotification('error', data.message);
+            }
         }
     } catch (error) {
         console.error('Error:', error);

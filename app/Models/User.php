@@ -25,6 +25,13 @@ class User extends Authenticatable
     ];
 
     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'users';
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>
@@ -69,5 +76,21 @@ class User extends Authenticatable
     public function isUser(): bool
     {
         return $this->role === 'user';
+    }
+    
+    /**
+     * Get the member associated with this user (by email)
+     */
+    public function member()
+    {
+        return $this->hasOne(Member::class, 'email', 'email');
+    }
+    
+    /**
+     * Check if user is also a member
+     */
+    public function isMember(): bool
+    {
+        return $this->member()->exists();
     }
 }

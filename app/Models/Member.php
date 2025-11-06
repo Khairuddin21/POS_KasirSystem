@@ -108,4 +108,20 @@ class Member extends Model
     {
         return str_repeat('★', $this->rating) . str_repeat('☆', 5 - $this->rating);
     }
+    
+    /**
+     * Get the user associated with this member (by email)
+     */
+    public function user()
+    {
+        return $this->hasOne(User::class, 'email', 'email');
+    }
+    
+    /**
+     * Get all transactions for this member
+     */
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
 }

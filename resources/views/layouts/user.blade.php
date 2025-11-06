@@ -29,6 +29,46 @@
         @include('components.user.footer')
     </div>
     
+    <!-- Profile Dropdown Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdownBtn = document.getElementById('profileDropdownBtn');
+            const dropdownMenu = document.getElementById('profileDropdownMenu');
+            const dropdownIcon = document.getElementById('profileDropdownIcon');
+            
+            if (dropdownBtn && dropdownMenu) {
+                // Toggle dropdown
+                dropdownBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdownMenu.classList.toggle('hidden');
+                    
+                    // Rotate icon
+                    if (dropdownMenu.classList.contains('hidden')) {
+                        dropdownIcon.style.transform = 'rotate(0deg)';
+                    } else {
+                        dropdownIcon.style.transform = 'rotate(180deg)';
+                    }
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!dropdownBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                        dropdownMenu.classList.add('hidden');
+                        dropdownIcon.style.transform = 'rotate(0deg)';
+                    }
+                });
+                
+                // Close dropdown when pressing ESC
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && !dropdownMenu.classList.contains('hidden')) {
+                        dropdownMenu.classList.add('hidden');
+                        dropdownIcon.style.transform = 'rotate(0deg)';
+                    }
+                });
+            }
+        });
+    </script>
+    
     @stack('scripts')
 </body>
 </html>
